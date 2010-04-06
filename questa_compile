@@ -1,0 +1,3 @@
+vlib work
+vlog -f questa_project_sv.f -sv -incr +mfcu -cover sbectf +acc
+
