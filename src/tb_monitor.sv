@@ -1,7 +1,7 @@
 
 
-`ifndef TB_MONITOR
-`define TB_MONITOR
+`ifndef TB_MONITOR_SV
+`define TB_MONITOR_SV
 
 class tb_monitor;
 

@@ -1,6 +1,6 @@
 
-`ifndef CPU_BFM
-`define CPU_BFM
+`ifndef CPU_BFM_SV
+`define CPU_BFM_SV
 
 class cpu_bfm;
 /*

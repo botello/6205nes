@@ -1,20 +1,11 @@
 
 
-`ifndef MEM_TOP
-`define MEM_TOP
+`ifndef MEM_TOP_SV
+`define MEM_TOP_SV
 
 `include "mem_bfm.sv"
 
-module mem_top(
-   input  logic  clk,
-   input  logic  rst,
-   input  logic  wen,
-   input  logic  ren,
-   output logic  rdy,
-   input  t_addr addr_in,
-   input  t_data data_in,
-   output t_data data_out
-);
+module mem_top(cpu_intf.mem intf);
 
    mem_bfm mem_bfm;
    initial begin
@@ -24,15 +15,15 @@ module mem_top(
 
    /*
    initial forever begin
-      @(posedge clk);
-      if (wen) begin
-         mem_bfm.write(addr, data);
+      @(posedge intf.clk);
+      if (intf.wen) begin
+         mem_bfm.write(intf.addr_out, intf.data_out);
       end
    end
 
    initial forever begin
-      if (~wen) begin
-         data = mem_read(addr);
+      if (~intf.wen) begin
+         intf.data_in = mem_read(intf.addr_out);
       end
    end
    */

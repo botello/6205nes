@@ -1,6 +1,6 @@
 
-`ifndef MEM_BFM
-`define MEM_BFM
+`ifndef MEM_BFM_SV
+`define MEM_BFM_SV
 
 import tb_pkg::*;
 
