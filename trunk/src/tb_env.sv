@@ -1,6 +1,6 @@
 
-`ifndef TB_ENV
-`define TB_ENV
+`ifndef TB_ENV_SV
+`define TB_ENV_SV
 
 `include "tb_driver.sv"
 `include "tb_monitor.sv"

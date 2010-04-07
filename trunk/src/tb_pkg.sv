@@ -1,7 +1,7 @@
 
 
-`ifndef TB_PKG
-`define TB_PKG
+`ifndef TB_PKG_SV
+`define TB_PKG_SV
 
 package tb_pkg;
 

@@ -1,6 +1,6 @@
 
-`ifndef CPU_INTF
-`define CPU_INTF
+`ifndef CPU_INTF_SV
+`define CPU_INTF_SV
 
 interface cpu_intf();
 
@@ -17,6 +17,29 @@ interface cpu_intf();
    logic        wen;
    logic        rdy;
    logic        so;
+
+   modport cpu(
+      input  clk,
+      input  rst,
+      input  nmi,
+      input  irq,
+      input  data_in,
+      input  rdy,
+      output syn_clk,
+      output addr_out,
+      output data_out,
+      output ren,
+      output wen,
+      output so
+   );
+
+   modport mem(
+      input  clk,
+      input  rst,
+      input  addr_out,
+      input  data_out,
+      output data_in
+   );
 
 endinterface
 

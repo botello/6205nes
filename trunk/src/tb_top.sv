@@ -1,6 +1,6 @@
 
-`ifndef TB_TOP
-`define TB_TOP
+`ifndef TB_TOP_SV
+`define TB_TOP_SV
 
 module tb_top();
 
@@ -8,32 +8,8 @@ module tb_top();
    `include "tb_env.sv"
 
    cpu_intf cpu_intf();
-
-   mem_top mem_top(
-      .clk      (cpu_intf.clk),
-      .rst      (cpu_intf.rst),
-      .wen      (cpu_intf.wen),
-      .ren      (cpu_intf.ren),
-      .rdy      (cpu_intf.rdy),
-      .addr_in  (cpu_intf.addr_out),
-      .data_in  (cpu_intf.data_out),
-      .data_out (cpu_intf.data_in)
-   );
-
-   cpu_top cpu_top(
-      .clk      (cpu_intf.clk),
-      .syn_clk  (cpu_intf.syn_clk),
-      .rst      (cpu_intf.rst),
-      .nmi      (cpu_intf.nmi),
-      .irq      (cpu_intf.irq),
-      .addr_out (cpu_intf.addr_out),
-      .data_out (cpu_intf.data_out),
-      .data_in  (cpu_intf.data_in),
-      .ren      (cpu_intf.ren),
-      .wen      (cpu_intf.wen),
-      .rdy      (cpu_intf.rdy),
-      .so       (cpu_intf.so)
-   );
+   mem_top mem_top(cpu_intf.mem);
+   cpu_top cpu_top(cpu_intf.cpu);
 
    tb_env env;
    initial begin

@@ -1,7 +1,7 @@
 
 
-`ifndef TB_DRIVER
-`define TB_DRIVER
+`ifndef TB_DRIVER_SV
+`define TB_DRIVER_SV
 
 class tb_driver;
 
