@@ -3,16 +3,17 @@
 `ifndef TB_MONITOR_SV
 `define TB_MONITOR_SV
 
-class tb_monitor;
+class tb_monitor extends component_base;
 
-   protected virtual cpu_intf vi;
+   protected virtual cpu_if vi;
    bit disable_rmem;
    bit disable_wmem;
 
    function new(string name = "tb_monitor");
+      this.name = name;
    endfunction
 
-   virtual function void assign_vi(virtual interface cpu_intf vi);
+   virtual function void assign_vi(virtual interface cpu_if vi);
       this.vi = vi;
    endfunction
 

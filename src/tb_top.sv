@@ -1,15 +1,30 @@
 
+
 `ifndef TB_TOP_SV
 `define TB_TOP_SV
 
+`include "cpu_if.sv"
+`include "cpu_ref_if.sv"
+`include "cpu_ref_top.sv"
+`include "mem_ref_top.sv"
+`include "cpu_duv_if.sv"
+`include "cpu_duv_top.sv"
+`include "mem_duv_top.sv"
+
 module tb_top();
 
-   import tb_pkg::*;
-   `include "tb_env.sv"
+   `include "tb.svh"
 
-   cpu_intf cpu_intf();
-   mem_top mem_top(cpu_intf.mem);
-   cpu_top cpu_top(cpu_intf.cpu);
+   // Design Under Verification.
+   cpu_duv_if  cpu_duv_if();
+   cpu_duv_top cpu_duv_top(cpu_duv_if.cpu);
+   mem_duv_top mem_duv_top(cpu_duv_if.mem);
+   // Reference Model.
+   cpu_ref_if  cpu_ref_if();
+   cpu_ref_top cpu_ref_top(cpu_ref_if.cpu);
+   mem_ref_top mem_ref_top(cpu_ref_if.mem);
+
+   cpu_if cpu_intf(cpu_duv_if, cpu_ref_if);
 
    tb_env env;
    initial begin
