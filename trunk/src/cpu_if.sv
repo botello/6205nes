@@ -1,8 +1,9 @@
 
-`ifndef CPU_INTF_SV
-`define CPU_INTF_SV
 
-interface cpu_intf();
+`ifndef CPU_IF_SV
+`define CPU_IF_SV
+
+interface cpu_if(cpu_duv_if duv_intf, cpu_ref_if ref_intf);
 
    logic        clk;
    logic        syn_clk;
@@ -17,6 +18,20 @@ interface cpu_intf();
    logic        wen;
    logic        rdy;
    logic        so;
+
+   always_comb begin
+      duv_intf.clk = clk;
+      duv_intf.rst = rst;
+      duv_intf.nmi = nmi;
+      duv_intf.irq = irq;
+      syn_clk = duv_intf.syn_clk;
+
+      ref_intf.clk = clk;
+      ref_intf.rst = rst;
+      ref_intf.nmi = nmi;
+      ref_intf.irq = irq;
+      syn_clk = ref_intf.syn_clk;
+   end
 
    modport cpu(
       input  clk,
