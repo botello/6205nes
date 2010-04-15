@@ -15,6 +15,22 @@ class object_base;
       return name;
    endfunction
 
+   function void report_info(string id, string msg);
+      $display("@%p %s [%s] %s", $time, this.name, id, msg);
+   endfunction
+
+   function void report_warning(string id, string msg);
+      $warning("@%p %s [%s] %s", $time, this.name, id, msg);
+   endfunction
+
+   function void report_error(string id, string msg);
+      $error("@%p %s [%s] %s", $time, this.name, id, msg);
+   endfunction
+
+   function void report_fatal(string id, string msg);
+      $fatal("@%p %s [%s] %s", $time, this.name, id, msg);
+   endfunction
+
 endclass
 
 `endif
