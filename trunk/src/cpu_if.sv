@@ -33,7 +33,7 @@ interface cpu_if(cpu_duv_if duv_intf, cpu_ref_if ref_intf);
       syn_clk = ref_intf.syn_clk;
    end
 
-   modport cpu(
+   modport cpu_duv_if_mp(
       input  clk,
       input  rst,
       input  nmi,
@@ -48,7 +48,30 @@ interface cpu_if(cpu_duv_if duv_intf, cpu_ref_if ref_intf);
       output so
    );
 
-   modport mem(
+   modport cpu_duv_mem_mp(
+      input  clk,
+      input  rst,
+      input  addr_out,
+      input  data_out,
+      output data_in
+   );
+
+   modport cpu_ref_if_mp(
+      input  clk,
+      input  rst,
+      input  nmi,
+      input  irq,
+      input  data_in,
+      input  rdy,
+      output syn_clk,
+      output addr_out,
+      output data_out,
+      output ren,
+      output wen,
+      output so
+   );
+
+   modport cpu_ref_mem_mp(
       input  clk,
       input  rst,
       input  addr_out,

@@ -12,11 +12,14 @@ class tb_env extends component_base;
 
    tb_driver driver;
    tb_monitor monitor;
+   tb_generator generator;
 
-   function new(string name = "tb_env");
+   function new(string name = "tb_env", component_base parent = null);
       this.name = name;
-      driver = new("driver");
-      monitor = new("monitor");
+      this.parent = parent;
+      driver = new("driver", this);
+      monitor = new("monitor", this);
+      generator = new("generator", this);
    endfunction
 
    virtual function void assign_vi(virtual interface cpu_if vi);
@@ -25,12 +28,32 @@ class tb_env extends component_base;
       monitor.assign_vi(vi);
    endfunction
 
+   // Entry point where test is launched.
+   virtual task start_test();
+      configure();
+      run();
+      report();
+   endtask
+
+   function void configure();
+      driver.configure();
+      monitor.configure();
+      generator.configure();
+   endfunction
+
    virtual task run();
       fork
          driver.run();
          monitor.run();
-      join_none
+         generator.run();
+      join
    endtask
+
+   virtual function void report();
+      driver.report();
+      monitor.report();
+      generator.report();
+   endfunction
 
 endclass
 
