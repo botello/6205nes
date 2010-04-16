@@ -3,7 +3,7 @@
 `ifndef CPU_IF_SV
 `define CPU_IF_SV
 
-interface cpu_if(cpu_duv_if duv_intf, cpu_ref_if ref_intf);
+interface cpu_if (cpu_duv_if duv_intf, cpu_ref_if ref_intf);
 
    logic        clk;
    logic        syn_clk;

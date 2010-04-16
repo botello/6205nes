@@ -6,6 +6,10 @@
 class tb_driver extends component_base;
 
    protected virtual cpu_if vi;
+   mailbox #(request_item) inbox;
+   mailbox #(response_item) outbox;
+
+   local int unsigned n_items;
 
    function new(string name = "tb_driver", component_base parent);
       this.name = name;
@@ -17,19 +21,37 @@ class tb_driver extends component_base;
    endfunction
 
    virtual function void configure();
-      super.configure();
+      n_items = 10;
    endfunction
 
    virtual task run();
-      super.run();
-      repeat (10) begin
+      request_item req;
+      response_item rsp;
+
+      wait_for_rst();
+      repeat (n_items) begin
          @(posedge vi.clk);
-         report_info("RUN", "Dummy");
+         inbox.get(req);
+         drive_req(req, rsp);
+         outbox.put(rsp);
       end
    endtask
 
+   protected task wait_for_rst();
+      @(negedge vi.rst);
+   endtask
+
+   virtual protected task drive_req(request_item req, output response_item rsp);
+      // drive item to interface.
+      vi.data_in = req.id;
+      report_info("RUN", $sformatf("Driven: %s", req.to_string()));
+      // copy information to response message.
+      rsp = new();
+      rsp.id = req.id;
+   endtask
+
    virtual function void report();
-      super.report();
+      report_info("REPORT", $sformatf("Done: driven %p item(s)", n_items));
    endfunction
 
 endclass

@@ -5,7 +5,9 @@
 
 class tb_generator extends component_base;
 
-   string name;
+   mailbox #(request_item) outbox;
+
+   local int unsigned n_items;
 
    function new(string name ="tb_generator", component_base parent);
       this.name = name;
@@ -13,15 +15,24 @@ class tb_generator extends component_base;
    endfunction
 
    virtual function void configure();
-      super.configure();
+      n_items = 10;
    endfunction
 
    virtual task run();
-      super.run();
+      request_item req;
+
+      repeat (n_items) begin
+         req = new();
+         assert (req.randomize() > 0) else begin
+            report_warning("RUN", $sformatf("Failed to randomize item: %s", req.to_string()));
+         end
+         outbox.put(req);
+         report_info("RUN", $sformatf("Generated: %s", req.to_string()));
+      end
    endtask
 
    virtual function void report();
-      super.report();
+      report_info("REPORT", $sformatf("Done: generated %p items", n_items));
    endfunction
 
 endclass

@@ -37,7 +37,7 @@ module tb_top();
       cpu_intf.nmi = 1'b0;
       cpu_intf.irq = 1'b0;
       cpu_intf.rst = 1'b1;
-      #50;
+      #51;
       cpu_intf.rst = 1'b0;
    end
 
