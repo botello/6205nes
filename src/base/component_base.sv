@@ -16,15 +16,15 @@ class component_base extends object_base;
    endfunction
 
    virtual function void configure();
-      report_info("CONFIG", "Started");
+      report_info("CONFIG", "Started...");
    endfunction
 
    virtual task run();
-      report_info("RUN", "Started");
+      report_info("RUN", "Started...");
    endtask
 
    virtual function void report();
-      report_info("REPORT", "Started");
+      report_info("REPORT", "Started...");
    endfunction
 
 endclass

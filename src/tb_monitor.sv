@@ -35,22 +35,24 @@ class tb_monitor extends component_base;
    endfunction
 
    virtual protected task monitor_rmem();
-      //forever begin
+      longint count = 0;
+      forever begin
          // Assuming reading from memory is instantaneous.
-         //@(posedge vi.clk);
-         //if (vi.ren) begin
-         //   $display ("%p MEM READ [0x%x] = 0x%x", $time, vi.addr_out, vi.data_in);
-         //end
-      //end
+         @(posedge vi.clk);
+         if (vi.ren) begin
+            $display ("%p [%p] MEM READ [0x%x] = 0x%x", $time, ++count, vi.addr_out, vi.data_in);
+         end
+      end
    endtask
 
    virtual protected task monitor_wmem();
-      //forever begin
-         //@(posedge vi.clk);
-         //if (vi.wen) begin
-         //   $display ("%p MEM WRITE [0x%x] = 0x%x", $time, vi.addr_out, vi.data_out);
-         //end
-      //end
+      longint count = 0;
+      forever begin
+         @(posedge vi.clk);
+         if (vi.wen) begin
+            $display ("%p [%p] MEM WRITE [0x%x] = 0x%x", $time, ++count, vi.addr_out, vi.data_out);
+         end
+      end
    endtask
 
 endclass
