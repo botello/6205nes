@@ -110,7 +110,7 @@ module mem_ref_top(cpu_ref_if.mem intf);
       intf.data_in = 'h0;
 
       if (intf.ren) begin
-         $display("MEM: Read at [0x%h]", intf.addr_out);
+         mem_bfm.report_info("MEM", $sformatf("READ at [0x%h]", intf.addr_out));
          case (intf.addr_out[15:13])
             ADDR_15_13_ROM   : intf.data_in = mem_rom_r  [intf.addr_out[14:0]];
             ADDR_15_13_RAM   : intf.data_in = mem_ram_r  [intf.addr_out[10:0]];
@@ -130,7 +130,7 @@ module mem_ref_top(cpu_ref_if.mem intf);
                   ADDR_JOYPAD1     : intf.data_in = io_joypad1_r;
                   ADDR_JOYPAD2     : intf.data_in = io_joypad2_r;
                   ADDR_SPR_RAM_DMA : intf.data_in = io_spr_ram_dma;
-                  default          : $display("ERROR: Read operation to IO not implemented at [0x%h]", intf.addr_out);
+                  default          : mem_bfm.report_error("MEM", $sformatf("READ operation to IO not implemented at [0x%h]", intf.addr_out));
                endcase
             end
          endcase
@@ -149,9 +149,9 @@ module mem_ref_top(cpu_ref_if.mem intf);
       io_spr_ram_dma = io_spr_ram_dma_r;
 
       if (intf.wen) begin
-         $display("MEM: Write at [0x%h] 0x%h", intf.addr_out, intf.data_out);
+         mem_bfm.report_info("MEM", $sformatf("WRITE at [0x%h] 0x%h", intf.addr_out, intf.data_out));
          case (intf.addr_out[15:13])
-            ADDR_15_13_ROM   : $display("ERROR: Write operation to ROM detected at [0x%h] 0x%h", intf.addr_out, intf.data_out);
+            ADDR_15_13_ROM   : mem_bfm.report_fatal("MEM", $sformatf("WRITE operation to ROM detected at [0x%h] 0x%h", intf.addr_out, intf.data_out));
             ADDR_15_13_RAM   : mem_ram  [intf.addr_out[10:0]] = intf.data_out;
             ADDR_15_13_SRAM  : mem_sram [intf.addr_out[12:0]] = intf.data_out;
             ADDR_15_13_IOREG : mem_ioreg[intf.addr_out[02:0]] = intf.data_out;
@@ -164,7 +164,7 @@ module mem_ref_top(cpu_ref_if.mem intf);
                   ADDR_JOYPAD1     : io_joypad1     = intf.data_out;
                   ADDR_JOYPAD2     : io_joypad2     = intf.data_out;
                   ADDR_SPR_RAM_DMA : io_spr_ram_dma = intf.data_out;
-                  default          : $display("ERROR: Write operation to IO not implemented at [0x%h] 0x%h", intf.addr_out, intf.data_out);
+                  default          : mem_bfm.report_error("MEM", $sformatf("WRITE operation to IO not implemented at [0x%h] 0x%h", intf.addr_out, intf.data_out));
                endcase
             end
          endcase
@@ -184,15 +184,15 @@ module mem_ref_top(cpu_ref_if.mem intf);
    end
 
    initial begin : rom_init_proc
-      integer i, j;
+      integer i, j; string s;
       for (i = 0; i < 2**15; i = i + 1) mem_rom_init[i] = 'h0;
       $readmemh("src/programs/SMB_32PRG.txt", mem_rom_init);
-      $display("Program memory loaded:");
+      s = "Program memory loaded:";
       for (i = 0; i < 2**15; i = i + 32) begin
-         $write("\n [%h] ", i);
-         for (j = 0; j < 32; j = j + 1) $write(" %h", mem_rom_init[i + j]);
+         s = {s, $sformatf("\n [%h] ", i)};
+         for (j = 0; j < 32; j = j + 1) s = {s, $sformatf(" %h", mem_rom_init[i + j])};
       end
-      $display("");
+      mem_bfm.report_info("MEM", $sformatf("%s\n", s));
    end
 
 

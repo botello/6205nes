@@ -39,7 +39,9 @@ interface cpu_duv_if();
       input  rst,
       input  addr_out,
       input  data_out,
-      output data_in
+      output data_in,
+      output ren,
+      output wen
    );
 
 endinterface
