@@ -1,0 +1,1418 @@
+// ============================================================
+// Title       : CPU CU
+// Project     : NES
+// File        : CPU_CU.sv
+// Description : Control Unit
+// Revisions   : 
+// ============================================================
+// Author      : Nora Cristina Lopez Magaña and Carlos Vazquez
+// Course      : 
+// ============================================================
+
+module CU_CtlGen (
+  cpu_if.cu cpu_if0,          // Interface with DP
+  alu_if.mstr alu_if0,        // Interface with the ALU
+  cu_if.ctlgen cu_if0,        // Interface with the rest of the CU
+  input CU_phi2, CU_bRST      // CU General Signals
+  );
+
+`include "../CPU_source/Parameters.v"
+`include "../CPU_source/macros.v"
+
+  // Sign and Carry delayed used in branches
+  reg Offset_sign;
+  reg Offset_carry;
+  
+  wire [2:0] CU_InstrX;
+  wire [2:0] CU_InstrY;
+  wire [1:0] CU_InstrZ;
+  wire [2:0] CU_PstInstrX;
+  wire [2:0] CU_PstInstrY;
+  wire [1:0] CU_PstInstrZ;
+  
+  logic [5:0] cur_state;
+  logic [5:0] next_state;
+  logic CU_bIRQ_Flg, CU_bNMI_Flg, CU_bDMA_Flg;
+  logic [7:0] CU_DMA_By;
+  logic [7:0] CU_InstrR;
+  logic [7:0] CU_PstInstrR;
+  //Processor Status Flags (P register)
+  logic CU_ZFlg, CU_NFlg, CU_CFlg, CU_VFlg, CU_IFlg;
+  //Flags from ALU
+  logic CU_ALU_ZFlg, CU_ALU_VFlg, CU_ALU_CFlg, CU_ALU_NFlg;
+  logic CU_OpB_sign;
+
+
+  // ALU Control
+  logic CU_ALU_Cin;
+  logic [1:0] CU_ALU_Funct;
+  logic [1:0] CU_ALU_OpBFunct;
+  logic CU_ALU_OpBFunctEN;
+  // Read Write Control
+  logic CU_R_bW;
+  // Enables for DP Registers
+  logic CU_DMA_By_EN, CU_PCH_EN, CU_PCL_EN, CU_SP_EN, CU_ABL_EN, CU_ABH_EN, CU_DIR_EN, CU_InstrR_EN, CU_PstInstrR_EN;
+  logic CU_PstInstrR_Clr;
+  logic CU_XR_EN, CU_YR_EN, CU_ACC_EN, CU_OpA_EN, CU_OpB_EN;
+  // Bus Selectors for DP
+  logic [2:0] CU_PC_Bus_Sel;
+  logic [2:0] CU_ADL_Sel;
+  logic [2:0] CU_ADH_Sel;
+  logic [2:0] CU_DB_Sel;
+  logic [2:0] CU_SB_Sel;
+  logic       CU_OpA_Bus_Sel;
+  logic [1:0] CU_OpB_Bus_Sel;
+  // Flag Buses and Enables for Status Register in DP
+  logic CU_BFlgB, CU_DFlgB, CU_IFlgB, CU_ZFlgB, CU_NFlgB, CU_CFlgB, CU_VFlgB;
+  logic CU_PR_EN, CU_NFlg_EN, CU_VFlg_EN, CU_BFlg_EN, CU_DFlg_EN, CU_IFlg_EN, CU_ZFlg_EN, CU_CFlg_EN;
+  // Signals to Clear Interrupt Flags
+  logic CU_bNMI_SD, CU_bIRQ_SD;
+
+  always_comb
+    begin
+      cur_state  = cu_if0.cur_state;
+      next_state = cu_if0.nxt_state;
+      CU_bIRQ_Flg = cu_if0.birq_flg;
+      CU_bNMI_Flg = cu_if0.bnmi_flg;
+
+      CU_bDMA_Flg = cpu_if0.DP_bDMA_Flg;
+      CU_DMA_By   = cpu_if0.DP_DMA_By;
+      CU_InstrR   = cpu_if0.DP_InstrR;
+      CU_PstInstrR= cpu_if0.DP_PstInstrR;
+      
+      CU_OpB_sign = cpu_if0.DP_OpB_sign;
+      //Processor Status Flags (P register)
+      {CU_ZFlg, CU_NFlg, CU_CFlg, CU_VFlg, CU_IFlg} = {cpu_if0.DP_ZFlg, cpu_if0.DP_NFlg, cpu_if0.DP_CFlg, cpu_if0.DP_VFlg, cpu_if0.DP_IFlg};
+      //Flags from ALU
+      {CU_ALU_ZFlg, CU_ALU_VFlg, CU_ALU_CFlg, CU_ALU_NFlg} = {alu_if0.ZFlg, alu_if0.VFlg, alu_if0.CFlg, alu_if0.NFlg};
+      
+
+      // ALU Control
+      alu_if0.Cin = CU_ALU_Cin;
+      alu_if0.ALU_Funct = CU_ALU_Funct;
+      alu_if0.ALU_OpB_Funct = CU_ALU_OpBFunct;
+      alu_if0.ALU_OpB_FunctEn = CU_ALU_OpBFunctEN;
+      // Read Write Control
+      cpu_if0.CU_R_bW = CU_R_bW;
+      // Enables for DP Registers
+      cpu_if0.CU_DMA_By_EN    = CU_DMA_By_EN;
+      cpu_if0.CU_PCH_EN       = CU_PCH_EN;
+      cpu_if0.CU_PCL_EN       = CU_PCL_EN;
+      cpu_if0.CU_SP_EN        = CU_SP_EN;
+      cpu_if0.CU_ABL_EN       = CU_ABL_EN;
+      cpu_if0.CU_ABH_EN       = CU_ABH_EN;
+      cpu_if0.CU_DIR_EN       = CU_DIR_EN;
+      cpu_if0.CU_InstrR_EN    = CU_InstrR_EN;
+      cpu_if0.CU_PstInstrR_EN = CU_PstInstrR_EN;
+      cpu_if0.CU_PstInstrR_Clr= CU_PstInstrR_Clr;
+      cpu_if0.CU_XR_EN  = CU_XR_EN;
+      cpu_if0.CU_YR_EN  = CU_YR_EN;
+      cpu_if0.CU_ACC_EN = CU_ACC_EN;
+      cpu_if0.CU_OpA_EN = CU_OpA_EN;
+      cpu_if0.CU_OpB_EN = CU_OpB_EN;
+      // Bus Selectors for DP
+      cpu_if0.CU_PCB_Sel  = CU_PC_Bus_Sel;
+      cpu_if0.CU_ADL_Sel  = CU_ADL_Sel;
+      cpu_if0.CU_ADH_Sel  = CU_ADH_Sel;
+      cpu_if0.CU_DB_Sel   = CU_DB_Sel;
+      cpu_if0.CU_SB_Sel   = CU_SB_Sel;
+      cpu_if0.CU_OpAB_Sel = CU_OpA_Bus_Sel;
+      cpu_if0.CU_OpBB_Sel = CU_OpB_Bus_Sel;
+      // Flag Buses and Enables for Status Register in DP
+      cpu_if0.CU_BFlgB = CU_BFlgB;
+      cpu_if0.CU_DFlgB = CU_DFlgB;
+      cpu_if0.CU_IFlgB = CU_IFlgB;
+      cpu_if0.CU_ZFlgB = CU_ZFlgB;
+      cpu_if0.CU_NFlgB = CU_NFlgB;
+      cpu_if0.CU_CFlgB = CU_CFlgB;
+      cpu_if0.CU_VFlgB = CU_VFlgB;
+      cpu_if0.CU_PR_EN   = CU_PR_EN;
+      cpu_if0.CU_NFlg_EN = CU_NFlg_EN;
+      cpu_if0.CU_VFlg_EN = CU_VFlg_EN;
+      cpu_if0.CU_BFlg_EN = CU_BFlg_EN;
+      cpu_if0.CU_DFlg_EN = CU_DFlg_EN;
+      cpu_if0.CU_IFlg_EN = CU_IFlg_EN;
+      cpu_if0.CU_ZFlg_EN = CU_ZFlg_EN;
+      cpu_if0.CU_CFlg_EN = CU_CFlg_EN;
+
+      
+      cu_if0.bnmi_sd = CU_bNMI_SD;
+      cu_if0.birq_sd = CU_bIRQ_SD;
+      
+      cu_if0.dma_bflg = CU_bDMA_Flg;
+      cu_if0.dma_by = CU_DMA_By;
+      cu_if0.alu_cflg = CU_ALU_CFlg; 
+      cu_if0.opb_sign = CU_OpB_sign;
+      {cu_if0.z_flg, cu_if0.n_flg, cu_if0.c_flg, cu_if0.v_flg, cu_if0.i_flg} = {CU_ZFlg, CU_NFlg, CU_CFlg, CU_VFlg, CU_IFlg};
+      
+      cu_if0.instrX     = CU_InstrX;
+      cu_if0.instrY     = CU_InstrY;
+      cu_if0.instrZ     = CU_InstrZ;
+      cu_if0.pst_instrX = CU_PstInstrX;
+      cu_if0.pst_instrY = CU_PstInstrY;
+      cu_if0.pst_instrZ = CU_PstInstrZ;
+    end
+
+  assign CU_InstrX = CU_InstrR[7:5];
+  assign CU_InstrY = CU_InstrR[4:2];
+  assign CU_InstrZ = CU_InstrR[1:0];
+  assign CU_PstInstrX = CU_PstInstrR[7:5];
+  assign CU_PstInstrY = CU_PstInstrR[4:2];
+  assign CU_PstInstrZ = CU_PstInstrR[1:0];
+
+always @(posedge CU_phi2)
+  begin      
+    if (cur_state == ST2_05)
+    begin
+      Offset_sign <= CU_OpB_sign;
+      Offset_carry <= CU_ALU_CFlg;
+    end
+  end
+
+always @*
+ begin
+ // Control Signals default values
+ CU_ALU_Cin = Off;
+ CU_ALU_Funct = OR;
+ CU_ALU_OpBFunct = INC;
+ CU_ALU_OpBFunctEN = Dis;
+ CU_R_bW = Read;
+ CU_DMA_By_EN = Dis;
+ CU_PCH_EN = Dis;
+ CU_PCL_EN = Dis;
+ CU_SP_EN = Dis;
+ CU_ABL_EN = En;
+ CU_ABH_EN = En;
+ CU_DIR_EN = Dis;
+ CU_InstrR_EN = Dis;
+ CU_PstInstrR_EN = Dis;
+ CU_PstInstrR_Clr = Off;
+ CU_XR_EN = Dis;
+ CU_YR_EN = Dis;
+ CU_ACC_EN = Dis;
+ CU_OpA_EN = Dis;
+ CU_OpB_EN = Dis;
+ CU_PC_Bus_Sel = PCp1_to_PCB;
+ CU_ADL_Sel = PCL_to_ADL;
+ CU_ADH_Sel = PCH_to_ADH;
+ CU_DB_Sel = DIR_to_DB;
+ CU_SB_Sel = ALUout_to_SB;
+ CU_OpA_Bus_Sel = Zero_to_OpAB;
+ CU_OpB_Bus_Sel = ADH_to_OpBB;
+ CU_BFlgB = Off;
+ CU_DFlgB = Off;
+ CU_IFlgB = Off;
+ CU_ZFlgB = Off;
+ CU_NFlgB = Off;
+ CU_CFlgB = Off;
+ CU_VFlgB = Off;
+ CU_PR_EN = Dis;
+ CU_NFlg_EN = Dis;
+ CU_VFlg_EN = Dis;
+ CU_BFlg_EN = Dis;
+ CU_DFlg_EN = Dis;
+ CU_IFlg_EN = Dis;
+ CU_ZFlg_EN = Dis;
+ CU_CFlg_EN = Dis;
+ CU_bNMI_SD = bOff;
+ CU_bIRQ_SD = bOff;
+ 
+ ///////////////////////////////////////////////////////////////////////////
+ //  Init Pipeline Stage                                                  //
+ //    -cur_state case makes the buses selection and direction.           //
+ //    -nxt_state case habilitates the regs enables.                      //
+ ///////////////////////////////////////////////////////////////////////////
+ 
+ 
+ /* cur_state case - In this case statement the selectors of the buses(DB, SB, ADH, ADL, OpA and OpB) are established, 
+                     also the direction of the bus XXX is established(CU_R_bW). The CU_ALU_xxx signals are set too          */
+   case (cur_state)
+    IS0:                         //IS: Interrupt Sequence (IS0 to IS6). Interrupt Priority: 1.-Reset(START)  2.-NMI  3.-IRQ(BRK)
+    begin
+      CU_R_bW = Read;
+      CU_ADL_Sel = PCL_to_ADL;
+      CU_ADH_Sel = PCH_to_ADH;
+    end
+    
+    IS1:
+    begin
+      if (!CU_bIRQ_Flg |`Implied_BRK |!CU_bNMI_Flg)
+        CU_R_bW = Write;
+      else 
+        CU_R_bW = Read;
+      CU_IFlgB = On;
+      CU_ADL_Sel = SP_to_ADL;
+      CU_ADH_Sel = Pg1_to_ADH;
+      CU_DB_Sel = PCH_to_DB;
+    end
+    
+    IS2:
+    begin
+      if (!CU_bIRQ_Flg |`Implied_BRK |!CU_bNMI_Flg)
+        CU_R_bW = Write;
+      else 
+        CU_R_bW = Read;
+      CU_ALU_Funct = OR;
+      CU_ALU_OpBFunct = DEC;
+      CU_ALU_OpBFunctEN = En;
+      CU_ADL_Sel = ALUout_to_ADL;
+      CU_ADH_Sel = Pg1_to_ADH;
+      CU_DB_Sel = PCL_to_DB;
+    end
+    
+    IS3:
+    begin
+      if (!CU_bIRQ_Flg |`Implied_BRK |!CU_bNMI_Flg)
+        CU_R_bW = Write;
+      else 
+        CU_R_bW = Read;
+      CU_ALU_Funct = OR;
+      CU_ALU_OpBFunct = DEC;
+      CU_ALU_OpBFunctEN = En;
+      CU_ADL_Sel = ALUout_to_ADL;
+      CU_ADH_Sel = Pg1_to_ADH;
+      CU_DB_Sel = PR_to_DB;
+    end
+    
+    IS4:
+    begin
+      CU_R_bW = Read;
+      CU_ALU_Funct = OR;
+      CU_ALU_OpBFunct = DEC;
+      CU_ALU_OpBFunctEN = En;
+      CU_SB_Sel = ALUout_to_SB;
+      CU_ADL_Sel = PCL_to_ADL;
+      CU_ADH_Sel = PCH_to_ADH;
+    end
+    
+    IS5:
+    begin
+      CU_R_bW = Read;
+      CU_ADL_Sel = PCL_to_ADL;
+      CU_ADH_Sel = PCH_to_ADH;
+      CU_DB_Sel = DIR_to_DB;
+      CU_bNMI_SD = bOn;
+      CU_bIRQ_SD = bOn;
+    end
+    
+    IS6:
+    begin
+      CU_R_bW = Read;
+      CU_ALU_Funct = OR;
+      CU_ADH_Sel = DIR_to_ADH;
+      CU_ADL_Sel = ALUout_to_ADL;
+      CU_bNMI_SD = bOff;
+      CU_bIRQ_SD = bOff;
+    end
+    
+    ST0:
+    begin
+      CU_R_bW = Read;
+      CU_ADH_Sel = PCH_to_ADH;
+      CU_ADL_Sel = PCL_to_ADL;      
+    end
+    
+    ST1_01:
+    begin
+      CU_R_bW = Read;
+      CU_ADH_Sel = Pg0_to_ADH;
+      CU_ADL_Sel = DIR_to_ADL;
+      if (`ZP_Y)
+        CU_SB_Sel = YR_to_SB;
+      else
+        CU_SB_Sel = XR_to_SB;
+    end
+    
+    ST1_02:
+    begin
+      CU_R_bW = Read;
+      CU_DB_Sel = DIR_to_DB;
+      CU_ADH_Sel = PCH_to_ADH;
+      CU_ADL_Sel = PCL_to_ADL;
+      if (`Immediate & `CPX)
+        CU_SB_Sel = XR_to_SB;
+      else if (`Immediate & `CPY)
+        CU_SB_Sel = YR_to_SB;
+      else if (`Immediate)
+        CU_SB_Sel = ACC_to_SB;
+      else if (`Abs_X | `Abs_X_Inc_Dec_Sh_Rot)
+        CU_SB_Sel = XR_to_SB;
+      else if (`Abs_Y)
+        CU_SB_Sel = YR_to_SB;      
+    end
+    
+    ST1_03:
+    begin
+      CU_R_bW = Read;
+      CU_DB_Sel = SB_to_DB;
+      CU_ADH_Sel = PCH_to_ADH;
+      CU_ADL_Sel = PCL_to_ADL;
+      if (`Transfer_A | `SH_ROT_ACC)
+        CU_SB_Sel = ACC_to_SB;
+      else if (`Transfer_X)
+        CU_SB_Sel = XR_to_SB;
+      else if (`Transfer_Y)
+        CU_SB_Sel = YR_to_SB;
+      else if (`Transfer_Stack)
+        CU_SB_Sel = SP_to_SB;
+    end
+    
+    ST1_04:
+    begin
+      CU_R_bW = Read;
+      CU_DB_Sel = DIR_to_DB;
+      CU_SB_Sel = ADL_to_SB;
+      CU_ADH_Sel = PCH_to_ADH;
+      CU_ADL_Sel = PCL_to_ADL;
+    end
+    
+    ST1_05:
+    begin
+      CU_ADH_Sel = Pg0_to_ADH;
+      CU_ADL_Sel = DIR_to_ADL;
+      if(`STORES & ~`Ind_X_AL)
+        begin
+        CU_R_bW = Write;
+        CU_DB_Sel = SB_to_DB;
+        end
+      else
+        CU_R_bW = Read;
+      if (`STORES & `STY)
+        CU_SB_Sel = YR_to_SB;
+      else if (`STORES & `STA)
+        CU_SB_Sel = ACC_to_SB;
+      else
+        CU_SB_Sel = XR_to_SB;
+    end
+    
+    ST1_06:
+    begin
+      CU_R_bW = Read;
+      CU_ADH_Sel = Pg1_to_ADH;
+      CU_ADL_Sel = SP_to_ADL;
+    end
+    
+    ST1_07:
+    begin
+      CU_ADH_Sel = Pg1_to_ADH;
+      CU_ADL_Sel = SP_to_ADL;
+      if(`Implied_Pushs)
+        CU_R_bW = Write;
+      else
+        CU_R_bW = Read;
+      if (`PHP & `Implied_Pushs)
+        CU_DB_Sel = PR_to_DB;
+      else if (`PHA & `Implied_Pushs)
+        CU_DB_Sel = ACC_to_DB;
+      else
+        CU_DB_Sel = PR_to_DB;   
+    end
+
+    ST2_01:
+    begin
+      CU_ALU_Funct = ADC;
+      CU_ALU_Cin = Off;
+      CU_ADH_Sel = Pg0_to_ADH;
+      CU_ADL_Sel = ALUout_to_ADL;
+      if(`STORES & ~`Ind_X_AL)
+        begin
+        CU_R_bW = Write;
+        CU_DB_Sel = SB_to_DB;
+        end
+      else
+        CU_R_bW = Read;
+      if (`STORES & `STY)
+        CU_SB_Sel = YR_to_SB;
+      else if (`STORES & `STA)
+        CU_SB_Sel = ACC_to_SB;
+      else
+        CU_SB_Sel = XR_to_SB;
+    end
+    
+    ST2_02:
+    begin
+      CU_R_bW = Read;
+      CU_SB_Sel = YR_to_SB;
+      CU_DB_Sel = DIR_to_DB;
+      CU_ALU_Funct = OR;
+      CU_ALU_OpBFunct = INC;
+      CU_ALU_OpBFunctEN = En;
+      CU_ADH_Sel = Pg0_to_ADH;
+      CU_ADL_Sel = ALUout_to_ADL;
+    end
+    
+    ST2_03:
+    begin 
+      CU_DB_Sel = ACC_to_DB;
+      CU_ALU_Funct = ADC;
+      CU_ALU_Cin = Dis;
+      CU_ADL_Sel = ALUout_to_ADL;
+      CU_ADH_Sel = DIR_to_ADH;
+      if (`STORES & !(CU_ALU_CFlg))
+        CU_R_bW = Write;
+      else 
+        CU_R_bW = Read;
+      /*if (`Abs_X_Inc_Dec_Sh_Rot)
+      begin
+        CU_ABL_EN = Dis;
+        CU_ABH_EN = Dis;
+      end
+      else
+      begin*/
+        CU_ABL_EN = En;
+        CU_ABH_EN = En;
+      //end
+    end
+    
+    ST2_04:
+    begin
+      CU_R_bW = Read;
+      CU_ALU_Funct = OR;
+      CU_ADH_Sel = DIR_to_ADH;
+      CU_ADL_Sel = ALUout_to_ADL;
+      if(`STORES)
+        begin
+        CU_R_bW = Write;
+        CU_DB_Sel = SB_to_DB;
+        end
+      else
+        CU_R_bW = Read;
+      if (`STORES & `STY)
+        CU_SB_Sel = YR_to_SB;
+      else if (`STORES & `STA)
+        CU_SB_Sel = ACC_to_SB;
+      else
+        CU_SB_Sel = XR_to_SB;
+    end
+    
+    ST2_05:
+    begin
+      if ((`BPL & ~CU_NFlg) | (`BMI & CU_NFlg) | (`BVC & ~CU_VFlg) | (`BVS & CU_VFlg) | (`BCC & ~CU_CFlg) | (`BCS & CU_CFlg) | (`BNE & ~CU_ZFlg) | (`BEQ & CU_ZFlg))
+        begin
+          CU_R_bW = Read;
+          CU_ALU_Funct = ADC;
+          CU_ALU_Cin = Off;
+          CU_ADH_Sel = PCH_to_ADH;
+          CU_ADL_Sel = ALUout_to_ADL;
+        end
+      else
+      begin
+        CU_R_bW = Read;
+        CU_ADH_Sel = PCH_to_ADH;
+        CU_ADL_Sel = PCL_to_ADL;
+      end 
+    end
+    
+    ST2_06:
+    begin
+      CU_ABL_EN = Dis;  
+      CU_ABH_EN = Dis;
+      CU_R_bW = Write;
+      CU_DB_Sel = DIR_to_DB;
+    end
+    
+    ST2_07:
+    begin
+      if (!CU_bDMA_Flg)
+      begin
+        CU_R_bW = Read;
+        CU_ADL_Sel = DMABy_to_ADL;
+        CU_ADH_Sel = DMAPg_to_ADH;
+      end
+      else
+      begin
+        CU_R_bW = Read;
+        CU_DB_Sel = DIR_to_DB;
+        CU_ADH_Sel = PCH_to_ADH;
+        CU_ADL_Sel = PCL_to_ADL;
+        if (`CPX)
+          CU_SB_Sel = XR_to_SB;
+        else if (`CPY)
+          CU_SB_Sel = YR_to_SB;
+        else 
+          CU_SB_Sel = ACC_to_SB;
+      end
+    end
+    
+    ST2_08:
+    begin
+      CU_R_bW = Write;
+      CU_DB_Sel = PCH_to_DB;
+      CU_ADH_Sel = Pg1_to_ADH;
+      CU_ADL_Sel = SP_to_ADL;  
+    end
+    
+    ST2_09:
+    begin
+      CU_R_bW = Read;
+      CU_ALU_Funct = OR;
+      CU_ALU_OpBFunct = INC;
+      CU_ALU_OpBFunctEN = En;
+      CU_DB_Sel = DIR_to_DB;
+      CU_SB_Sel = ALUout_to_SB;
+      CU_ADL_Sel = ALUout_to_ADL;
+      CU_ADH_Sel = Pg1_to_ADH;
+   end
+    
+    ST2_10:
+    begin
+      CU_R_bW = Read;
+      CU_ALU_Funct = OR;
+      CU_ALU_OpBFunct = DEC;
+      CU_ALU_OpBFunctEN = En;
+      CU_DB_Sel = DIR_to_DB;
+      CU_SB_Sel = ALUout_to_SB;
+      CU_ADL_Sel = PCL_to_ADL;
+      CU_ADH_Sel = PCH_to_ADH;
+    end
+    
+    ST3_01:
+    begin
+      CU_ALU_Funct = OR;
+      CU_ALU_OpBFunct = INC;
+      CU_ALU_OpBFunctEN = En;
+      CU_SB_Sel = ALUout_to_SB;
+      CU_ADH_Sel = SB_to_ADH;
+      if(`STORES)
+        begin
+          //CU_ADL_Sel = ALUout_to_ADL;
+          //CU_ADH_Sel = DIR_to_ADH;
+          CU_R_bW = Write;
+        end
+      else
+        CU_R_bW = Read; 
+      CU_ABL_EN = Dis;
+      CU_ABH_EN = En;
+    end
+    
+    ST3_02:
+    begin
+      CU_ABH_EN = Dis;
+      CU_ABL_EN = Dis;
+      CU_R_bW = Read;  
+    end
+    
+    ST3_03: 
+    begin
+      CU_R_bW = Read;
+      CU_DB_Sel = DIR_to_DB;
+      CU_ADL_Sel = PCL_to_ADL;
+      CU_ADH_Sel = PCH_to_ADH;
+    end
+    
+    ST3_04:
+    begin
+      if (~Offset_sign)
+        begin
+          CU_ALU_Funct = OR;
+          CU_ALU_OpBFunct = INC;
+          CU_ALU_OpBFunctEN = En;
+        end
+      else if (Offset_sign)
+        begin
+          CU_ALU_Funct = OR;
+          CU_ALU_OpBFunct = DEC;
+          CU_ALU_OpBFunctEN = En;
+        end
+      CU_SB_Sel = ALUout_to_SB;
+      CU_ADH_Sel = SB_to_ADH;
+    end
+    
+    ST3_05:
+    begin
+      CU_R_bW = Read;
+      CU_DB_Sel = DIR_to_DB;
+      CU_ALU_Funct = ADC;
+      CU_ALU_Cin = On;
+      CU_ADL_Sel = ALUout_to_ADL;
+      CU_ADH_Sel = Pg0_to_ADH;
+    end
+    
+    ST3_06:
+    begin
+      CU_ABH_EN = Dis;
+      CU_ABL_EN = Dis;
+      CU_R_bW = Write; 
+      if (`ASL)
+        begin
+        CU_ALU_Funct = OR;
+        CU_ALU_OpBFunct = SHL;
+        CU_ALU_OpBFunctEN = En;
+        CU_ALU_Cin = Off; 
+        end
+      else if (`LSR)
+      begin
+        CU_ALU_Funct = OR;
+        CU_ALU_OpBFunct = SHR;
+        CU_ALU_OpBFunctEN = En;
+        CU_ALU_Cin = Off;
+      end
+      else if (`ROL)
+      begin
+        CU_ALU_Funct = OR;
+        CU_ALU_OpBFunct = SHL;
+        CU_ALU_OpBFunctEN = En;
+        CU_ALU_Cin = CU_CFlg;
+      end
+      else if (`ROR)
+      begin
+        CU_ALU_Funct = OR;
+        CU_ALU_OpBFunct = SHR;
+        CU_ALU_OpBFunctEN = En;
+        CU_ALU_Cin = CU_CFlg;
+      end
+      else if (`DEC)
+      begin
+        CU_ALU_Funct = OR;
+        CU_ALU_OpBFunct = DEC;
+        CU_ALU_OpBFunctEN = En;
+      end
+      else if (`INC)
+      begin
+        CU_ALU_Funct = OR;
+        CU_ALU_OpBFunct = INC;
+        CU_ALU_OpBFunctEN = En;
+      end
+        CU_SB_Sel = ALUout_to_SB;
+        CU_DB_Sel = SB_to_DB;
+    end
+    
+    ST3_07:
+    begin
+      CU_R_bW = Write;
+      CU_DB_Sel = PCL_to_DB;
+      CU_ALU_Funct = OR;
+      CU_ALU_OpBFunct = DEC;
+      CU_ALU_OpBFunctEN = En;
+      CU_ADL_Sel = ALUout_to_ADL;
+      CU_ADH_Sel = Pg1_to_ADH;      
+    end
+    
+    ST3_08:
+    begin
+      CU_R_bW = Read;
+      CU_DB_Sel = DIR_to_DB;
+      CU_ADL_Sel = PCL_to_ADL;
+      CU_ADH_Sel = PCH_to_ADH;
+    end
+    
+    ST3_09:
+    begin
+      CU_R_bW = Read;
+      CU_ALU_Funct = OR;
+      CU_ALU_OpBFunct = INC;
+      CU_ALU_OpBFunctEN = En;
+      CU_DB_Sel = DIR_to_DB;
+      CU_SB_Sel = ALUout_to_SB;
+      CU_ADL_Sel = ALUout_to_ADL;
+      CU_ADH_Sel = Pg1_to_ADH;
+    end
+    
+    ST4_01:
+    begin
+      CU_ABH_EN = En;
+      CU_ABL_EN = En;
+      CU_R_bW = Read;
+      CU_ADL_Sel = PCL_to_ADL;
+      CU_ADH_Sel = PCH_to_ADH;
+    end
+    
+    ST4_02:
+    begin
+      CU_R_bW = Read;
+      CU_ALU_Funct = OR;
+      CU_ALU_OpBFunct = INC;
+      CU_ALU_OpBFunctEN = En;
+      CU_SB_Sel = ALUout_to_SB;
+      CU_ADL_Sel = ALUout_to_ADL;
+      CU_ADH_Sel = Pg1_to_ADH;
+      CU_DB_Sel = DIR_to_DB;
+    end
+    
+    ST4_03:
+    begin
+      CU_R_bW = Read;
+      CU_ALU_Funct = OR;
+      CU_ADL_Sel = ALUout_to_ADL;
+      CU_ADH_Sel = DIR_to_ADH;
+    end
+    
+    ST4_04:
+    begin
+      CU_R_bW = Read;
+      CU_ALU_Funct = OR;
+      CU_ADH_Sel = DIR_to_ADH;
+      CU_ADL_Sel = ALUout_to_ADL;
+      CU_R_bW = Read;
+    end
+    
+    ST5_01:
+    begin
+      CU_R_bW = Read;
+      CU_ALU_Funct = OR;
+      CU_ADL_Sel = ALUout_to_ADL;
+      CU_ADH_Sel = DIR_to_ADH;
+    end
+    
+    ST5_02:
+    begin
+      CU_R_bW = Read;
+      CU_ADL_Sel = PCL_to_ADL;
+      CU_ADH_Sel = PCH_to_ADH;
+    end
+    
+    DMA0:
+    begin
+      CU_R_bW = Write;
+      CU_ADL_Sel = PPU04_to_ADL;
+      CU_ADH_Sel = PPU20_to_ADH;
+    end
+    
+    DMA1:
+    begin
+      if(CU_DMA_By == 8'h00)
+      begin
+        CU_R_bW = Read;
+        CU_DB_Sel = DIR_to_DB;
+        CU_ADH_Sel = PCH_to_ADH;
+        CU_ADL_Sel = PCL_to_ADL;
+        if (`CPX)
+          CU_SB_Sel = XR_to_SB;
+        else if (`CPY)
+          CU_SB_Sel = YR_to_SB;
+        else 
+          CU_SB_Sel = ACC_to_SB;
+      end
+      else
+      begin
+        CU_R_bW = Read;
+        CU_ADL_Sel = DMABy_to_ADL;
+        CU_ADH_Sel = DMAPg_to_ADH;
+      end
+    end
+  endcase
+  
+
+////////////////////////////////////////////////////////////////////////////
+ /* next_state case - This case statement habilitates the regs enables. 
+                      The PC_Bus, OpA and OpB bus selector are established. */
+    case (next_state)
+    IS0:
+    begin
+      CU_InstrR_EN =  En;
+      CU_PCH_EN = En;
+      CU_PCL_EN = En;
+      CU_PC_Bus_Sel = ADD_to_PCB;
+    end
+    
+    IS1:
+    begin
+     CU_DIR_EN = Dis; 
+     CU_PstInstrR_Clr = On;
+    end
+    
+    IS2:
+    begin
+      CU_IFlg_EN = En;
+      CU_OpB_Bus_Sel = ADL_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+    end
+    
+    IS3:
+    begin
+      CU_OpB_Bus_Sel = ADL_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+    end
+    
+    IS4:
+    begin
+      CU_OpB_Bus_Sel = ADL_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+      if (!CU_bNMI_Flg)
+        CU_PC_Bus_Sel = VctNMI_to_PCB;
+      else if (!CU_bIRQ_Flg | `Implied_BRK)
+        CU_PC_Bus_Sel = VctIRQ_to_PCB;
+      else 
+        CU_PC_Bus_Sel = VctSTART_to_PCB;
+      CU_PCH_EN = En;
+      CU_PCL_EN = En;
+    end
+    
+    IS5:
+    begin
+      CU_DIR_EN = En;
+      CU_PC_Bus_Sel = PCp1_to_PCB;
+      CU_PCH_EN = En;
+      CU_PCL_EN = En;
+      CU_SP_EN = En;
+    end
+    
+    IS6:
+    begin
+      CU_DIR_EN = En;
+      CU_OpB_Bus_Sel = DB_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+    end
+    
+    ST0:
+    begin
+      CU_InstrR_EN =  En;
+      CU_PCH_EN = En;
+      CU_PCL_EN = En;
+      if (`Abs_JSR_PstI | `Abs_JMP_PstI | `Ind_JMP_PstI | `Implied_Pushs_PstI | `Implied_RTI_PstI)  
+        CU_PC_Bus_Sel = ADDp1_to_PCB;
+      else
+        CU_PC_Bus_Sel = ADDp1_to_PCB;
+    end
+    
+    ST1_01:
+    begin
+      CU_DIR_EN = En;
+      CU_PC_Bus_Sel = PCp1_to_PCB;
+      CU_PCH_EN = En;
+      CU_PCL_EN = En;
+      CU_PstInstrR_EN = En;
+    end
+    
+    ST1_02:
+    begin
+      CU_DIR_EN = En;
+      CU_PC_Bus_Sel = PCp1_to_PCB;
+      CU_PCH_EN = En;
+      CU_PCL_EN = En;
+      CU_PstInstrR_EN = En;
+    end
+    
+    ST1_03:
+    begin
+      CU_DIR_EN = Dis; 
+      CU_PstInstrR_EN = En;
+    end
+  
+    
+    ST1_04:
+    begin
+      CU_DIR_EN = En;
+      CU_PC_Bus_Sel = PCp1_to_PCB;
+      CU_PCH_EN = En;
+      CU_PCL_EN = En;
+      CU_PstInstrR_EN = En;
+    end
+    
+    ST1_05:
+    begin
+      CU_DIR_EN = En;
+      CU_PC_Bus_Sel = PCp1_to_PCB;
+      CU_PCH_EN = En;
+      CU_PCL_EN = En;
+      CU_PstInstrR_EN = En;
+    end
+    
+    ST1_06:
+    begin
+      CU_DIR_EN = En;
+      CU_PC_Bus_Sel = PCp1_to_PCB;
+      CU_PCH_EN = En;
+      CU_PCL_EN = En;
+      CU_PstInstrR_EN = En;
+    end
+    
+    ST1_07:
+    begin
+      CU_DIR_EN = Dis;
+      CU_PstInstrR_EN = En;
+    end
+    
+    ST2_01:
+    begin
+      CU_DIR_EN = Dis;
+      CU_OpB_Bus_Sel = ADL_to_OpBB;
+      CU_OpA_Bus_Sel = SB_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+    end
+    
+    ST2_02:
+    begin
+      CU_DIR_EN = En;
+      CU_OpB_Bus_Sel = ADL_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+    end
+    
+    ST2_03:
+    begin
+      CU_DIR_EN = En;
+      CU_OpB_Bus_Sel = DB_to_OpBB;
+      CU_OpA_Bus_Sel = SB_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+      CU_PC_Bus_Sel = PCp1_to_PCB;
+      if (`Ind_Y)
+      begin
+        CU_PCH_EN = Dis;
+        CU_PCL_EN = Dis;
+      end
+      else
+      begin
+        CU_PCH_EN = En;
+        CU_PCL_EN = En;
+      end
+    end
+    
+    ST2_04:
+    begin
+      CU_DIR_EN = En;
+      CU_OpB_Bus_Sel = DB_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+      CU_PC_Bus_Sel = PCp1_to_PCB;
+      if (`Ind_X_AL)
+        begin
+        CU_PCH_EN = Dis;
+        CU_PCL_EN = Dis;
+        end
+      else
+        begin
+        CU_PCH_EN = En;
+        CU_PCL_EN = En;
+        end
+    end
+    
+    ST2_05:
+    begin
+      CU_InstrR_EN = En;
+      CU_OpB_Bus_Sel = DB_to_OpBB;
+      CU_OpA_Bus_Sel = SB_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+      CU_ABH_EN = En;
+      CU_ABL_EN = En;
+      if ((`BPL & ~CU_NFlg) | (`BMI & CU_NFlg) | (`BVC & ~CU_VFlg) | (`BVS & CU_VFlg) | (`BCC & ~CU_CFlg) | (`BCS & CU_CFlg) | (`BNE & ~CU_ZFlg) | (`BEQ & CU_ZFlg) )
+        CU_PC_Bus_Sel = ADD_to_PCB;
+      else
+        CU_PC_Bus_Sel = ADDp1_to_PCB;
+      CU_PCH_EN = En;
+      CU_PCL_EN = En;
+    end
+    
+    ST2_06:
+    begin
+      CU_DIR_EN = En;
+    end
+    
+    ST2_07:
+    begin
+      if (`STORES)
+        CU_DIR_EN = Dis;
+      else
+        CU_DIR_EN = En; 
+    end
+    
+    ST2_08:
+    begin
+      CU_DIR_EN = Dis;
+    end
+    
+    ST2_09:
+    begin
+      CU_DIR_EN = Dis;
+      CU_OpB_Bus_Sel = ADL_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+    end
+    
+    ST2_10:
+    begin
+      CU_OpB_Bus_Sel = ADL_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+      CU_PCH_EN = Dis;
+      CU_PCL_EN = Dis;
+    end
+        
+    ST3_01:
+    begin
+      CU_DIR_EN = Dis;
+      CU_OpB_Bus_Sel = ADH_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+    end
+    
+    ST3_02:
+    begin
+      CU_DIR_EN = Dis;
+    end
+    
+    ST3_03:
+    begin
+      CU_DIR_EN = En;
+      CU_PC_Bus_Sel = ADDp1_to_PCB;
+      CU_PCH_EN = En;
+      CU_PCL_EN = En;
+    end
+    
+    ST3_04:
+    begin
+      CU_PC_Bus_Sel = ADD_to_PCB;
+      CU_OpB_Bus_Sel = ADH_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+      CU_DIR_EN = Dis;
+      CU_PCH_EN = Dis;
+      CU_PCL_EN = En;
+      CU_ABL_EN = Dis;
+      CU_ABH_EN = En;
+    end
+    
+    ST3_05:
+    begin
+      CU_DIR_EN = En;
+      CU_ABL_EN = En;
+      CU_ABH_EN = En;
+    end
+    
+    ST3_06:
+    begin
+      CU_DIR_EN = Dis;
+      CU_OpB_Bus_Sel = DB_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+    end
+    
+    ST3_07:
+    begin
+      CU_OpB_Bus_Sel = ADL_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+    end
+    
+    ST3_08:
+    begin
+      CU_DIR_EN = En;
+      CU_SP_EN = En;
+    end
+    
+    ST3_09:
+    begin
+      CU_DIR_EN = En;
+      CU_OpB_Bus_Sel = ADL_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+    end
+    
+    ST4_01:
+    begin
+      CU_NFlgB = CU_ALU_NFlg;
+      CU_ZFlgB = CU_ALU_ZFlg;
+      CU_CFlgB = CU_ALU_CFlg;
+      CU_NFlg_EN = En;
+      CU_ZFlg_EN = En;
+      if (`SH_ROT)
+        CU_CFlg_EN = En; 
+    end
+    
+    ST4_02:
+    begin
+      CU_DIR_EN = En;
+      CU_OpB_Bus_Sel = ADL_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+      CU_PR_EN = En;
+    end
+    
+    ST4_03:
+    begin
+      CU_DIR_EN = En;
+      CU_SP_EN = En;
+      CU_OpB_Bus_Sel = DB_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;  
+    end
+    
+    ST4_04:
+    begin
+      CU_DIR_EN = En;
+      CU_OpB_Bus_Sel = DB_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;
+      CU_PC_Bus_Sel = PCp1_to_PCB;
+      CU_PCH_EN = En;
+      CU_PCL_EN = En;   
+    end
+    
+    ST5_01:
+    begin
+      CU_DIR_EN = En;
+      CU_SP_EN = En;
+      CU_OpB_Bus_Sel = DB_to_OpBB;
+      CU_OpA_Bus_Sel = Zero_to_OpAB;
+      CU_OpA_EN = En;
+      CU_OpB_EN = En;  
+    end
+
+    ST5_02:
+    begin
+      CU_DIR_EN = Dis;
+      CU_PC_Bus_Sel = ADDp1_to_PCB;
+      CU_PCH_EN = En;
+      CU_PCL_EN = En;
+    end
+    
+    DMA0:
+    begin
+      CU_DMA_By_EN = En;
+      CU_DIR_EN = En;
+    end
+    
+    DMA1:
+    begin
+      if(CU_DMA_By == 8'hFF)
+      begin
+        if (`STORES)
+          CU_DIR_EN = Dis;
+        else
+          CU_DIR_EN = En; 
+      end
+    end 
+  endcase
+  
+
+ //////////////////////////////////////////////////////////////////////////////////////////////////
+ //  Finish Pipeline Stage (First two cicles of any new instruction (except store instructions)  //
+ //    -cur_state if's makes the bus selection and direction.                                    //
+ //    -nxt_state if's habilitates the regs enables.                                             //
+ //////////////////////////////////////////////////////////////////////////////////////////////////
+ 
+ 
+ /* cur_state if's - The Data Bus (DB) and Secondary Bus (SB) selectors are set.
+                     The CU_ALU_xxx are set.                                  */
+  
+    if (cur_state == ST0 | cur_state == IS0)
+    if (`ORA_PstI)
+    begin
+      CU_ALU_Funct = OR;
+      CU_SB_Sel = ALUout_to_SB;
+    end
+    else if (`AND_PstI)
+    begin
+      CU_ALU_Funct = AND;
+      CU_SB_Sel = ALUout_to_SB;
+    end
+    else if (`EOR_PstI)
+    begin
+      CU_ALU_Funct = XOR;
+      CU_SB_Sel = ALUout_to_SB;
+    end
+    else if (`ADC_PstI)
+    begin
+      CU_ALU_Funct = ADC;
+      CU_SB_Sel = ALUout_to_SB;
+      CU_ALU_Cin = CU_CFlg;
+    end
+    else if (`LDA_PstI | `LDX_PstI | `LDY_PstI |`Transfer_Stack_PstI |`Transfer_X_PstI |`Transfer_Y_PstI |`Transfer_A_PstI | `Implied_Pulls_PstI)
+    begin
+      CU_ALU_Funct = OR;
+      CU_DB_Sel = SB_to_DB;
+
+      if (`Transfer_A_PstI)
+        CU_SB_Sel = ACC_to_SB;
+      else if (`Transfer_X_PstI)
+        CU_SB_Sel = XR_to_SB;
+      else if (`Transfer_Y_PstI)
+        CU_SB_Sel = YR_to_SB;
+      else if (`Transfer_Stack_PstI)
+        CU_SB_Sel = SP_to_SB;
+      else
+        CU_SB_Sel = ALUout_to_SB;
+        
+    end
+    else if (`CMP_PstI)
+    begin
+      CU_ALU_Funct = ADC;
+      CU_ALU_Cin = On;
+      CU_SB_Sel = ALUout_to_SB;
+    end
+    else if (`SBC_PstI )
+    begin
+      CU_ALU_Funct = ADC;
+      CU_ALU_Cin = CU_CFlg;
+      CU_SB_Sel = ALUout_to_SB;
+    end
+    else if (`CPX_PstI |`CPY_PstI)
+    begin
+      CU_ALU_Funct = ADC;
+      CU_ALU_Cin = On;
+      CU_SB_Sel = ALUout_to_SB;
+    end
+    else if (`BIT_PstI)
+    begin
+      CU_ALU_Funct = AND;
+      CU_SB_Sel = ALUout_to_SB;
+    end
+    else if (`ASL_ACC_PstI)
+    begin
+      CU_ALU_Funct = OR;
+      CU_ALU_OpBFunct = SHL;
+      CU_ALU_OpBFunctEN = En;
+      CU_SB_Sel = ALUout_to_SB;
+    end
+    else if (`LSR_ACC_PstI)
+    begin
+      CU_ALU_Funct = OR;
+      CU_ALU_OpBFunct = SHR;
+      CU_ALU_OpBFunctEN = En;
+      CU_SB_Sel = ALUout_to_SB;
+    end
+    else if (`ROL_ACC_PstI)
+    begin
+      CU_ALU_Funct = OR;
+      CU_ALU_OpBFunct = SHL;
+      CU_ALU_OpBFunctEN = En;
+      CU_ALU_Cin = CU_CFlg;
+      CU_SB_Sel = ALUout_to_SB;
+    end
+    else if (`ROR_ACC_PstI)
+    begin
+      CU_ALU_Funct = OR;
+      CU_ALU_OpBFunct = SHR;
+      CU_ALU_OpBFunctEN = En;
+      CU_ALU_Cin = CU_CFlg;
+      CU_SB_Sel = ALUout_to_SB;
+    end
+    else if (`DEX_Y_PstI)
+    begin
+      CU_ALU_Funct = OR;
+      CU_ALU_OpBFunct = DEC;
+      CU_ALU_OpBFunctEN = En;
+      CU_SB_Sel = ALUout_to_SB;
+    end
+    else if (`INX_Y_PstI)
+    begin
+      CU_ALU_Funct = OR;
+      CU_ALU_OpBFunct = INC;
+      CU_ALU_OpBFunctEN = En;
+      CU_SB_Sel = ALUout_to_SB;
+    end    
+    
+ /* next_state if's - The regs are enabled since the default value is 'disable'.
+                      The OpA and OpB bus selectors are set to the desire value.        
+                      The flags of the status register are updated.           */
+ 
+  if (next_state == ST0 | next_state == IS0)
+    if (`ORA_PstI | `AND_PstI | `EOR_PstI | `ADC_PstI | `BIT_PstI)
+      begin
+        CU_OpA_Bus_Sel = SB_to_OpAB;
+        CU_OpB_Bus_Sel = DB_to_OpBB;
+        CU_OpA_EN = En;
+        CU_OpB_EN = En;
+      end
+    else if (`LDA_PstI | `LDX_PstI | `LDY_PstI |`Transfer_Stack_PstI |`Transfer_X_PstI |`Transfer_Y_PstI |`Transfer_A_PstI | `Implied_Pulls_PstI |`ASL_ACC_PstI | `LSR_ACC_PstI |`ROL_ACC_PstI |`ROR_ACC_PstI |`DEX_Y_PstI |`INX_Y_PstI)
+      begin
+        CU_OpA_Bus_Sel = Zero_to_OpAB;
+        CU_OpB_Bus_Sel = DB_to_OpBB;
+        CU_OpA_EN = En;
+        CU_OpB_EN = En;
+      end
+    else if (`CMP_PstI | `SBC_PstI |`CPX_PstI |`CPY_PstI)
+      begin
+        CU_OpA_Bus_Sel = SB_to_OpAB;
+        CU_OpB_Bus_Sel = bDB_to_OpBB;
+        CU_OpA_EN = En;
+        CU_OpB_EN = En;
+      end
+    else if (`Implied_Pushs_PstI) 
+      begin
+          CU_SP_EN = En;
+      end
+    else if (`CLI_PstI)
+      begin
+        CU_IFlgB = Off;
+        CU_IFlg_EN = En;
+      end
+    else if (`SEI_PstI)
+      begin
+        CU_IFlgB = On;
+        CU_IFlg_EN = En;
+      end
+    else if (`CLC_PstI)
+      begin
+        CU_CFlgB = Off;
+        CU_CFlg_EN = En;
+      end
+    else if (`SEC_PstI)
+      begin
+        CU_CFlgB = On;
+        CU_CFlg_EN = En;
+      end
+    else if (`CLV_PstI)
+      begin
+        CU_VFlgB = Off;
+        CU_VFlg_EN = En;
+      end
+    else if (`SED_PstI)
+      begin
+        CU_DFlgB = On;
+        CU_DFlg_EN = En;
+      end
+    else if (`CLD_PstI)
+      begin
+        CU_DFlgB = Off;
+        CU_DFlg_EN = En;
+      end
+    
+    if ((next_state == ST1_01) | (next_state == ST1_02) | (next_state == ST1_03) | (next_state == ST1_04) | (next_state == ST1_05) | (next_state == ST1_06) | (next_state == ST1_07) | (next_state == IS1))
+      begin
+        CU_NFlgB = CU_ALU_NFlg;
+        CU_ZFlgB = CU_ALU_ZFlg; 
+        CU_CFlgB = CU_ALU_CFlg;
+        CU_VFlgB = CU_ALU_VFlg;
+        
+        if (`AL_EXCEPT_ST_CMP_ALL_AM_PstI | `SH_ROT_ACC_PstI | `LDX_PstI |`LDY_PstI | `CMP_PstI | `CPX_PstI | `CPY_PstI | `PLA_PstI | `TXA_TYA_PstI |`INX_DEX_TAX_TSX_PstI | `INY_DEY_TAY_PstI | `BIT_PstI)
+        begin
+          CU_NFlg_EN = En;
+          CU_ZFlg_EN = En;
+        end
+        
+        if (`CMP_PstI | `CPX_PstI | `CPY_PstI | `ADC_PstI | `SBC_PstI | `SH_ROT_ACC_PstI)
+          CU_CFlg_EN = En;
+          
+        if (`BIT_PstI | `ADC_PstI | `SBC_PstI)
+          CU_VFlg_EN = En;
+        
+        if (`TXS_PstI)
+          CU_SP_EN = En;
+        else if(`AL_EXCEPT_ST_CMP_ALL_AM_PstI | `SH_ROT_ACC_PstI | `PLA_PstI | `TXA_TYA_PstI)
+          CU_ACC_EN = En;
+        else if (`LDX_PstI | `INX_DEX_TAX_TSX_PstI)
+          CU_XR_EN = En;
+        else if (`LDY_PstI | `INY_DEY_TAY_PstI)
+          CU_YR_EN = En;
+          
+        if (`PLP_PstI)
+          CU_PR_EN = En;
+      end           
+    
+end
+
+endmodule:CU_CtlGen
