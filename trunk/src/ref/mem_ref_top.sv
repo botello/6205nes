@@ -190,7 +190,7 @@ module mem_ref_top(cpu_ref_if.mem intf);
       $display("Program memory loaded:");
       for (i = 0; i < 2**15; i = i + 32) begin
          $write("\n [%h] ", i);
-         for (j = 0; j < 32; j = j + 1) $write(" %h", mem_rom_init[i]);
+         for (j = 0; j < 32; j = j + 1) $write(" %h", mem_rom_init[i + j]);
       end
       $display("");
    end
