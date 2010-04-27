@@ -186,13 +186,11 @@ module mem_ref_top(cpu_ref_if.mem intf);
    initial begin : rom_init_proc
       integer i, j;
       for (i = 0; i < 2**15; i = i + 1) mem_rom_init[i] = 'h0;
-      $readmemh("programs/SMB_32PRG.txt", mem_rom_init);
+      $readmemh("src/programs/SMB_32PRG.txt", mem_rom_init);
       $display("Program memory loaded:");
       for (i = 0; i < 2**15; i = i + 32) begin
          $write("\n [%h] ", i);
-         for (j = 0; j < 32; j = j + 1) begin
-            $write(" %h", mem_rom_init[i]);
-         end
+         for (j = 0; j < 32; j = j + 1) $write(" %h", mem_rom_init[i]);
       end
       $display("");
    end
