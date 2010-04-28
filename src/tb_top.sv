@@ -27,7 +27,7 @@ module tb_top();
       //
       // TODO: right now, we are only using the reference model.
       //
-      env.assign_vi(cpu_ref_intf);
+      env.assign_vi(cpu_ref_intf.tb);
       env.start_test();
    end
 

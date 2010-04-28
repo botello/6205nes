@@ -125,7 +125,10 @@ module mem_top(tb_cpu_if.mem intf);
                   ADDR_JOYPAD2     : intf.cpu_data_in = io_joypad2_r;
                   ADDR_SPR_RAM_DMA : intf.cpu_data_in = io_spr_ram_dma;
                   16'h0001         : intf.cpu_data_in = 8'hCA;
-                  default          : $error("%p [MEM] READ operation to IO not implemented at [0x%h]", $time, intf.cpu_addr_out);
+                  default          : begin
+                     intf.cpu_data_in = 8'hXX;
+                     $error("%p [MEM] READ operation to IO not implemented at [0x%h]", $time, intf.cpu_addr_out);
+                  end
                endcase
             end
          endcase
