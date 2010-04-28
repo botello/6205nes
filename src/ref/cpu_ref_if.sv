@@ -7,9 +7,9 @@ interface cpu_ref_if();
 
    logic        clk;
    logic        syn_clk;
-   logic        rst;
-   logic        nmi;
-   logic        irq;
+   logic        b_rst;
+   logic        b_nmi;
+   logic        b_irq;
 
    logic [15:0] addr_out;
    logic [ 7:0] data_out;
@@ -21,9 +21,9 @@ interface cpu_ref_if();
 
    modport cpu(
       input  clk,
-      input  rst,
-      input  nmi,
-      input  irq,
+      input  b_rst,
+      input  b_nmi,
+      input  b_irq,
       input  data_in,
       input  rdy,
       output syn_clk,
@@ -36,7 +36,7 @@ interface cpu_ref_if();
 
    modport mem(
       input  clk,
-      input  rst,
+      input  b_rst,
       input  addr_out,
       input  data_out,
       output data_in,

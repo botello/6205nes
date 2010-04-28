@@ -5,7 +5,7 @@
 
 class tb_driver extends component_base;
 
-   protected virtual cpu_if vi;
+   protected virtual tb_cpu_if vi;
    mailbox #(request_item) inbox;
    mailbox #(response_item) outbox;
 
@@ -16,7 +16,7 @@ class tb_driver extends component_base;
       this.parent = parent;
    endfunction
 
-   virtual function void assign_vi(virtual interface cpu_if vi);
+   virtual function void assign_vi(virtual interface tb_cpu_if vi);
       this.vi = vi;
    endfunction
 
@@ -38,12 +38,17 @@ class tb_driver extends component_base;
    endtask
 
    protected task wait_for_rst();
-      @(negedge vi.rst);
+      @(posedge vi.b_rst);
    endtask
 
    virtual protected task drive_req(request_item req, output response_item rsp);
       // drive item to interface.
+      @(posedge vi.clk);
       vi.data_in = req.id;
+
+      @(posedge vi.clk);
+      vi.data_in = 'h0;
+
       report_info("RUN", $sformatf("Driven: %s", req.to_string()));
       // copy information to response message.
       rsp = new();

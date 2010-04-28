@@ -5,6 +5,8 @@
 
 module mem_ref_top(cpu_ref_if.mem intf);
 
+   logic debug_mode = 1;
+
    // Memory address map (4 MSB):
    //   Address[15:13] == 3'b1XX PrgROM           32kB de ROM at Address[14:0]
    //   Address[15:13] == 3'b011 SRAM              8kB de RAM at Address[12:0]
@@ -173,26 +175,29 @@ module mem_ref_top(cpu_ref_if.mem intf);
 
    always @(posedge intf.clk) begin : mem_reg
       integer i;
-      for (i = 0; i < 2**15; i = i + 1) mem_rom_r[i]   <= (intf.rst) ? mem_rom_init[i] : mem_rom[i];
-      for (i = 0; i < 2**11; i = i + 1) mem_ram_r[i]   <= (intf.rst) ? 'h0             : mem_ram[i];
-      for (i = 0; i < 2**13; i = i + 1) mem_sram_r[i]  <= (intf.rst) ? 'h0             : mem_sram[i];
-      for (i = 0; i < 2**03; i = i + 1) mem_ioreg_r[i] <= (intf.rst) ? 'h0             : mem_ioreg[i];
+      for (i = 0; i < 2**15; i = i + 1) mem_rom_r[i]   <= (~intf.b_rst) ? mem_rom_init[i] : mem_rom[i];
+      for (i = 0; i < 2**11; i = i + 1) mem_ram_r[i]   <= (~intf.b_rst) ? 'h0             : mem_ram[i];
+      for (i = 0; i < 2**13; i = i + 1) mem_sram_r[i]  <= (~intf.b_rst) ? 'h0             : mem_sram[i];
+      for (i = 0; i < 2**03; i = i + 1) mem_ioreg_r[i] <= (~intf.b_rst) ? 'h0             : mem_ioreg[i];
 
-      io_joypad1_r     <= (intf.rst) ? 'h0 : io_joypad1;
-      io_joypad2_r     <= (intf.rst) ? 'h0 : io_joypad2;
-      io_spr_ram_dma_r <= (intf.rst) ? 'h0 : io_spr_ram_dma;
+      io_joypad1_r     <= (~intf.b_rst) ? 'h0 : io_joypad1;
+      io_joypad2_r     <= (~intf.b_rst) ? 'h0 : io_joypad2;
+      io_spr_ram_dma_r <= (~intf.b_rst) ? 'h0 : io_spr_ram_dma;
    end
 
    initial begin : rom_init_proc
       integer i, j; string s;
       for (i = 0; i < 2**15; i = i + 1) mem_rom_init[i] = 'h0;
       $readmemh("src/programs/SMB_32PRG.txt", mem_rom_init);
-      s = "Program memory loaded:";
-      for (i = 0; i < 2**15; i = i + 32) begin
-         s = {s, $sformatf("\n [%h] ", i)};
-         for (j = 0; j < 32; j = j + 1) s = {s, $sformatf(" %h", mem_rom_init[i + j])};
+
+      if (debug_mode) begin
+         s = "Program memory loaded:";
+         for (i = 0; i < 2**15; i = i + 32) begin
+            s = {s, $sformatf("\n [%h] ", i)};
+            for (j = 0; j < 32; j = j + 1) s = {s, $sformatf(" %h", mem_rom_init[i + j])};
+         end
+         mem_bfm.report_info("MEM", $sformatf("%s\n", s));
       end
-      mem_bfm.report_info("MEM", $sformatf("%s\n", s));
    end
 
 

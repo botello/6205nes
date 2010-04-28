@@ -27,7 +27,7 @@ class tb_env extends component_base;
       driver_to_scoreboard_mbox = new();
    endfunction
 
-   virtual function void assign_vi(virtual interface cpu_if vi);
+   virtual function void assign_vi(virtual interface tb_cpu_if vi);
       driver.assign_vi(vi);
       monitor.assign_vi(vi);
    endfunction

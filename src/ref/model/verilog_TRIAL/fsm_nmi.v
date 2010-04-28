@@ -3,7 +3,7 @@
 `define true 1'b 1
 `define TRUE 1'b 1
 
-`timescale 1 ns / 1 ns // timescale for following modules
+//`timescale 1 ns / 1 ns // timescale for following modules
 
 
 //  VHDL Entity R6502_TC.FSM_NMI.symbol

@@ -5,7 +5,7 @@
 
 class tb_monitor extends component_base;
 
-   protected virtual cpu_if vi;
+   protected virtual tb_cpu_if vi;
    bit disable_rmem;
    bit disable_wmem;
 
@@ -14,7 +14,7 @@ class tb_monitor extends component_base;
       this.parent = parent;
    endfunction
 
-   virtual function void assign_vi(virtual interface cpu_if vi);
+   virtual function void assign_vi(virtual interface tb_cpu_if vi);
       this.vi = vi;
    endfunction
 
