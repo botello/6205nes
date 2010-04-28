@@ -40,7 +40,7 @@ class tb_monitor extends component_base;
          // Assuming reading from memory is instantaneous.
          @(posedge vi.clk);
          if (vi.ren) begin
-            $display ("%p [%p] MEM READ [0x%x] = 0x%x", $time, ++count, vi.addr_out, vi.data_in);
+            $display ("%p [%p] MEM READ [0x%x] = 0x%x", $time, ++count, vi.cpu_addr_out, vi.cpu_data_in);
          end
       end
    endtask
@@ -50,7 +50,7 @@ class tb_monitor extends component_base;
       forever begin
          @(posedge vi.clk);
          if (vi.wen) begin
-            $display ("%p [%p] MEM WRITE [0x%x] = 0x%x", $time, ++count, vi.addr_out, vi.data_out);
+            $display ("%p [%p] MEM WRITE [0x%x] = 0x%x", $time, ++count, vi.cpu_addr_out, vi.cpu_data_out);
          end
       end
    endtask

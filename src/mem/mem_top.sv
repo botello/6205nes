@@ -1,9 +1,9 @@
 
 
-`ifndef MEM_DUV_TOP_SV
-`define MEM_DUV_TOP_SV
+`ifndef MEM_TOP_SV
+`define MEM_TOP_SV
 
-module mem_duv_top(cpu_duv_if.mem intf);
+module mem_top(tb_cpu_if.mem intf);
 
    logic debug_mode = 1;
 
@@ -85,8 +85,6 @@ module mem_duv_top(cpu_duv_if.mem intf);
                ADDR_JOYPAD1        = 16'h4016,
                ADDR_JOYPAD2        = 16'h4017;
 
-   `include "mem_duv_bfm.sv"
-
    reg [7:0] mem_rom_init[2**15-1:0];
    reg [7:0] mem_rom_r   [2**15-1:0];
    reg [7:0] mem_rom     [2**15-1:0];
@@ -102,37 +100,32 @@ module mem_duv_top(cpu_duv_if.mem intf);
    reg [7:0] io_joypad2_r,     io_joypad2;
    reg [7:0] io_spr_ram_dma_r, io_spr_ram_dma;
 
-   mem_duv_bfm mem_bfm;
-   initial begin
-      mem_bfm = new();
-      mem_bfm.clear();
-   end
-
    always @(*) begin : mem_read_proc
-      intf.data_in = 'h0;
+      intf.cpu_data_in = 'h0;
 
       if (intf.ren) begin
-         $display("MEM: Read at [0x%h]", intf.addr_out);
-         case (intf.addr_out[15:13])
-            ADDR_15_13_ROM   : intf.data_in = mem_rom_r  [intf.addr_out[14:0]];
-            ADDR_15_13_RAM   : intf.data_in = mem_ram_r  [intf.addr_out[10:0]];
-            ADDR_15_13_SRAM  : intf.data_in = mem_sram_r [intf.addr_out[12:0]];
-            ADDR_15_13_IOREG : intf.data_in = mem_ioreg_r[intf.addr_out[02:0]];
+         //$display("%p [MEM] READ at [0x%h]", $time, intf.cpu_addr_out);
+         case (intf.cpu_addr_out[15:13])
+            ADDR_15_13_ROM   : intf.cpu_data_in = mem_rom_r  [intf.cpu_addr_out[14:0]];
+            ADDR_15_13_RAM   : intf.cpu_data_in = mem_ram_r  [intf.cpu_addr_out[10:0]];
+            ADDR_15_13_SRAM  : intf.cpu_data_in = mem_sram_r [intf.cpu_addr_out[12:0]];
+            ADDR_15_13_IOREG : intf.cpu_data_in = mem_ioreg_r[intf.cpu_addr_out[02:0]];
             //
             // TODO: Add mapping for ADDR_JOYPAD1 and ADDR_SPR_RAM_DMA selected
             //       when the 3 MSB in address are 3'b001.
             //
             ADDR_15_13_OTHER : begin
-               case (intf.addr_out)
+               case (intf.cpu_addr_out)
                   //
                   // TODO: Emulation of joypads could be implemented in the
                   //       memory BFM instead of just behaving as a regular
                   //       register.
                   //
-                  ADDR_JOYPAD1     : intf.data_in = io_joypad1_r;
-                  ADDR_JOYPAD2     : intf.data_in = io_joypad2_r;
-                  ADDR_SPR_RAM_DMA : intf.data_in = io_spr_ram_dma;
-                  default          : $display("ERROR: Read operation to IO not implemented at [0x%h]", intf.addr_out);
+                  ADDR_JOYPAD1     : intf.cpu_data_in = io_joypad1_r;
+                  ADDR_JOYPAD2     : intf.cpu_data_in = io_joypad2_r;
+                  ADDR_SPR_RAM_DMA : intf.cpu_data_in = io_spr_ram_dma;
+                  16'h0001         : intf.cpu_data_in = 8'hCA;
+                  default          : $error("%p [MEM] READ operation to IO not implemented at [0x%h]", $time, intf.cpu_addr_out);
                endcase
             end
          endcase
@@ -151,22 +144,22 @@ module mem_duv_top(cpu_duv_if.mem intf);
       io_spr_ram_dma = io_spr_ram_dma_r;
 
       if (intf.wen) begin
-         $display("MEM: Write at [0x%h] 0x%h", intf.addr_out, intf.data_out);
-         case (intf.addr_out[15:13])
-            ADDR_15_13_ROM   : $display("ERROR: Write operation to ROM detected at [0x%h] 0x%h", intf.addr_out, intf.data_out);
-            ADDR_15_13_RAM   : mem_ram  [intf.addr_out[10:0]] = intf.data_out;
-            ADDR_15_13_SRAM  : mem_sram [intf.addr_out[12:0]] = intf.data_out;
-            ADDR_15_13_IOREG : mem_ioreg[intf.addr_out[02:0]] = intf.data_out;
+         //$display("%p [MEM] WRITE at [0x%h] 0x%h", $time, intf.cpu_addr_out, intf.cpu_data_out);
+         case (intf.cpu_addr_out[15:13])
+            ADDR_15_13_ROM   : $fatal("%p [MEM] WRITE operation to ROM detected at [0x%h] 0x%h", $time, intf.cpu_addr_out, intf.cpu_data_out);
+            ADDR_15_13_RAM   : mem_ram  [intf.cpu_addr_out[10:0]] = intf.cpu_data_out;
+            ADDR_15_13_SRAM  : mem_sram [intf.cpu_addr_out[12:0]] = intf.cpu_data_out;
+            ADDR_15_13_IOREG : mem_ioreg[intf.cpu_addr_out[02:0]] = intf.cpu_data_out;
             //
             // TODO: Add mapping for ADDR_JOYPAD1 and ADDR_SPR_RAM_DMA selected
             //       when the 3 MSB in address are 3'b001.
             //
             ADDR_15_13_OTHER : begin
-               case (intf.addr_out)
-                  ADDR_JOYPAD1     : io_joypad1     = intf.data_out;
-                  ADDR_JOYPAD2     : io_joypad2     = intf.data_out;
-                  ADDR_SPR_RAM_DMA : io_spr_ram_dma = intf.data_out;
-                  default          : $display("ERROR: Write operation to IO not implemented at [0x%h] 0x%h", intf.addr_out, intf.data_out);
+               case (intf.cpu_addr_out)
+                  ADDR_JOYPAD1     : io_joypad1     = intf.cpu_data_out;
+                  ADDR_JOYPAD2     : io_joypad2     = intf.cpu_data_out;
+                  ADDR_SPR_RAM_DMA : io_spr_ram_dma = intf.cpu_data_out;
+                  default          : $fatal("%p [MEM] WRITE operation to IO not implemented at [0x%h] 0x%h", $time, intf.cpu_addr_out, intf.cpu_data_out);
                endcase
             end
          endcase
@@ -186,34 +179,21 @@ module mem_duv_top(cpu_duv_if.mem intf);
    end
 
    initial begin : rom_init_proc
-      integer i, j; string s;
+      integer i, j; string s; string filename;
+      filename = "src/programs/SMB_32PRG.txt";
       for (i = 0; i < 2**15; i = i + 1) mem_rom_init[i] = 'h0;
-      $readmemh("src/programs/SMB_32PRG.txt", mem_rom_init);
+      $readmemh(filename, mem_rom_init);
+
       if (debug_mode) begin
-         s = "Program memory loaded:";
+         s = $sformatf("%p [MEM] INIT ROM '%s':", $time, filename);
          for (i = 0; i < 2**15; i = i + 32) begin
             s = {s, $sformatf("\n [%h] ", i)};
             for (j = 0; j < 32; j = j + 1) s = {s, $sformatf(" %h", mem_rom_init[i + j])};
          end
-         mem_bfm.report_info("MEM", $sformatf("%s\n", s));
+         $display("%s\n", s);
       end
    end
 
-
-   /*
-   initial forever begin
-      @(posedge intf.clk);
-      if (intf.wen) begin
-         mem_bfm.write(intf.addr_out, intf.data_out);
-      end
-   end
-
-   initial forever begin
-      if (~intf.wen) begin
-         intf.data_in = mem_read(intf.addr_out);
-      end
-   end
-   */
 endmodule
 
 `endif
