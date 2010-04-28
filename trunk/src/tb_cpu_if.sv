@@ -44,6 +44,21 @@ interface tb_cpu_if ();
       output cpu_data_in
    );
 
+   modport tb (
+      input  clk,
+      input  b_rst,
+      input  b_nmi,
+      input  b_irq,
+      input  rdy,
+      input  cpu_data_in,
+      output cpu_data_out,
+      output cpu_addr_out,
+      output ren,
+      output wen,
+      output syn_clk,
+      output so
+   );
+
 endinterface
 
 `endif
