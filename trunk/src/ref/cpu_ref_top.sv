@@ -16,10 +16,10 @@ module cpu_ref_top(cpu_ref_if.cpu intf);
    Core refmodel(
       .clk_clk_i   (intf.clk),
       .d_i         (intf.data_in),
-      .irq_n_i     (intf.irq),
-      .nmi_n_i     (intf.nmi),
+      .irq_n_i     (intf.b_irq),
+      .nmi_n_i     (intf.b_nmi),
       .rdy_i       (intf.rdy),
-      .rst_rst_n_i (intf.rst),
+      .rst_rst_n_i (intf.b_rst),
       .so_n_i      (intf.so),
       .a_o         (intf.addr_out),
       .d_o         (intf.data_out),

@@ -1,9 +1,9 @@
 
 
-`ifndef CPU_DUV_IF_SV
-`define CPU_DUV_IF_SV
+`ifndef CPU_IF_SV
+`define CPU_IF_SV
 
-interface cpu_duv_if();
+interface tb_cpu_if (cpu_duv_if duv_intf, cpu_ref_if ref_intf);
 
    logic        clk;
    logic        syn_clk;
@@ -39,9 +39,7 @@ interface cpu_duv_if();
       input  b_rst,
       input  addr_out,
       input  data_out,
-      output data_in,
-      output ren,
-      output wen
+      output data_in
    );
 
 endinterface

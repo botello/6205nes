@@ -3,7 +3,7 @@
 `ifndef TB_TOP_SV
 `define TB_TOP_SV
 
-`include "cpu_if.sv"
+`include "tb_cpu_if.sv"
 `include "cpu_ref_if.sv"
 `include "cpu_ref_top.sv"
 `include "mem_ref_top.sv"
@@ -24,26 +24,24 @@ module tb_top();
    cpu_ref_top cpu_ref_top(cpu_ref_intf.cpu);
    mem_ref_top mem_ref_top(cpu_ref_intf.mem);
    // General interface.
-   cpu_if cpu_intf(cpu_duv_intf, cpu_ref_intf);
+   tb_cpu_if tb_cpu_intf(cpu_duv_intf, cpu_ref_intf);
 
    tb_env env;
    initial begin
       env = new();
-      env.assign_vi(cpu_intf);
+      env.assign_vi(tb_cpu_intf);
       env.start_test();
    end
 
-   initial begin
-      cpu_intf.nmi = 1'b0;
-      cpu_intf.irq = 1'b0;
-      cpu_intf.rst = 1'b1;
+   initial begin : rst_gen_proc
+      tb_cpu_intf.b_rst   = 'h0;
       #51;
-      cpu_intf.rst = 1'b0;
+      tb_cpu_intf.b_rst   = 'h1;
    end
 
-   initial begin
-      cpu_intf.clk = 1'b0;
-      forever #5 cpu_intf.clk = ~cpu_intf.clk;
+   initial begin : clk_gen_proc
+      tb_cpu_intf.clk = 1'b0;
+      forever #5 tb_cpu_intf.clk = ~tb_cpu_intf.clk;
    end
 
 endmodule
