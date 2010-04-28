@@ -19,12 +19,12 @@
 `include "CPU_source/CPU_DP.sv"
 `include "CPU_source/CPU_DP_ALU.sv"
 
-module cpu_duv_top(cpu_duv_if.cpu intf);
+module cpu_duv_top(tb_cpu_if.cpu intf);
 
    /*
    nes_if nes_intf(
-      .NES_clk   ( intf.clk   ),
-      .NES_b_rst ( intf.b_rst )
+   //   .NES_clk   ( intf.clk   ),
+   //   .NES_b_rst ( intf.b_rst )
    );
 
    NES_CPU nes_cpu(

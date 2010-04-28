@@ -28,6 +28,8 @@ class tb_driver extends component_base;
       request_item req;
       response_item rsp;
 
+      init_signals();
+
       wait_for_rst();
       repeat (n_items) begin
          @(posedge vi.clk);
@@ -38,21 +40,24 @@ class tb_driver extends component_base;
    endtask
 
    protected task wait_for_rst();
-      @(posedge vi.b_rst);
+      @(negedge vi.b_rst);
+      @(posedge vi.clk);
    endtask
 
    virtual protected task drive_req(request_item req, output response_item rsp);
       // drive item to interface.
       @(posedge vi.clk);
-      vi.data_in = req.id;
-
-      @(posedge vi.clk);
-      vi.data_in = 'h0;
 
       report_info("RUN", $sformatf("Driven: %s", req.to_string()));
       // copy information to response message.
       rsp = new();
       rsp.id = req.id;
+   endtask
+
+   virtual task init_signals();
+      vi.b_nmi = 'h1;
+      vi.b_irq = 'h1;
+      vi.rdy   = 'h1;
    endtask
 
    virtual function void report();

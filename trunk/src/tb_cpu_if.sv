@@ -3,7 +3,7 @@
 `ifndef CPU_IF_SV
 `define CPU_IF_SV
 
-interface tb_cpu_if (cpu_duv_if duv_intf, cpu_ref_if ref_intf);
+interface tb_cpu_if ();
 
    logic        clk;
    logic        syn_clk;
@@ -11,35 +11,37 @@ interface tb_cpu_if (cpu_duv_if duv_intf, cpu_ref_if ref_intf);
    logic        b_nmi;
    logic        b_irq;
 
-   logic [15:0] addr_out;
-   logic [ 7:0] data_out;
-   logic [ 7:0] data_in;
+   logic [15:0] cpu_addr_out;
+   logic [ 7:0] cpu_data_out;
+   logic [ 7:0] cpu_data_in;
    logic        ren;
    logic        wen;
    logic        rdy;
    logic        so;
 
-   modport cpu(
+   modport cpu (
       input  clk,
       input  b_rst,
       input  b_nmi,
       input  b_irq,
-      input  data_in,
       input  rdy,
-      output syn_clk,
-      output addr_out,
-      output data_out,
+      input  cpu_data_in,
+      output cpu_data_out,
+      output cpu_addr_out,
       output ren,
       output wen,
+      output syn_clk,
       output so
    );
 
-   modport mem(
+   modport mem (
       input  clk,
       input  b_rst,
-      input  addr_out,
-      input  data_out,
-      output data_in
+      input  wen,
+      input  ren,
+      input  cpu_addr_out,
+      input  cpu_data_out,
+      output cpu_data_in
    );
 
 endinterface
