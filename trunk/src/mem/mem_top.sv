@@ -127,7 +127,7 @@ module mem_top(tb_cpu_if.mem intf);
                   16'h0001         : intf.cpu_data_in = 8'hCA;
                   default          : begin
                      intf.cpu_data_in = 8'hXX;
-                     $error("%p [MEM] READ operation to IO not implemented at [0x%h]", $time, intf.cpu_addr_out);
+                     $display("%p [MEM] READ operation to IO not implemented at [0x%h]", $time, intf.cpu_addr_out);
                   end
                endcase
             end
@@ -149,7 +149,7 @@ module mem_top(tb_cpu_if.mem intf);
       if (intf.wen) begin
          //$display("%p [MEM] WRITE at [0x%h] 0x%h", $time, intf.cpu_addr_out, intf.cpu_data_out);
          case (intf.cpu_addr_out[15:13])
-            ADDR_15_13_ROM   : $fatal("%p [MEM] WRITE operation to ROM detected at [0x%h] 0x%h", $time, intf.cpu_addr_out, intf.cpu_data_out);
+            ADDR_15_13_ROM   : $display("%p [MEM] WRITE operation to ROM detected at [0x%h] 0x%h", $time, intf.cpu_addr_out, intf.cpu_data_out);
             ADDR_15_13_RAM   : mem_ram  [intf.cpu_addr_out[10:0]] = intf.cpu_data_out;
             ADDR_15_13_SRAM  : mem_sram [intf.cpu_addr_out[12:0]] = intf.cpu_data_out;
             ADDR_15_13_IOREG : mem_ioreg[intf.cpu_addr_out[02:0]] = intf.cpu_data_out;
@@ -162,7 +162,7 @@ module mem_top(tb_cpu_if.mem intf);
                   ADDR_JOYPAD1     : io_joypad1     = intf.cpu_data_out;
                   ADDR_JOYPAD2     : io_joypad2     = intf.cpu_data_out;
                   ADDR_SPR_RAM_DMA : io_spr_ram_dma = intf.cpu_data_out;
-                  default          : $fatal("%p [MEM] WRITE operation to IO not implemented at [0x%h] 0x%h", $time, intf.cpu_addr_out, intf.cpu_data_out);
+                  default          : $display("%p [MEM] WRITE operation to IO not implemented at [0x%h] 0x%h", $time, intf.cpu_addr_out, intf.cpu_data_out);
                endcase
             end
          endcase
