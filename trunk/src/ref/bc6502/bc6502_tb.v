@@ -46,7 +46,7 @@ module bc6502_tb();
 	always @(posedge clk) begin
 		$display($time,,"\n");
 		$display("sync=%b rdy=%b romcs=%b ramcs=%b rw=%b\n", sync, rdy, romcs, ramcs, rw);
-		$display("\tpc=%h a=%h x=%h y=%h sp=%h\n", cpu0.pc, cpu0.a_reg, cpu0.x_reg, cpu0.y_reg, cpu0.sp);
+		//$display("\tpc=%h a=%h x=%h y=%h sp=%h\n", cpu0.pc, cpu0.a_reg, cpu0.x_reg, cpu0.y_reg, cpu0.sp);
 		$display("\tir=%h ma=%h d=%h cpu.ma=%h cpu.ma_nxt=%h cpu.pc_nxt=%h cpu.tmp=%h cpu.taken=%b\n", cpu0.ir, a, d, cpu0.ma, cpu0.ma_nxt, cpu0.pc_nxt, cpu0.tmp, cpu0.taken);
 		$display("\tflags: n=%b v=%b z=%b c=%b im=%b d=%b b=%b", cpu0.nf, cpu0.vf, cpu0.zf, cpu0.cf, cpu0.im, cpu0.df, cpu0.bf);
 	end
