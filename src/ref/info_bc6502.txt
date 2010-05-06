@@ -1,0 +1,5 @@
+En la carpeta bc6502 se anexa otro modelo de referencia con todos sus modulos. Cabe señalar que este
+cuenta con su un archivo que se utiliza como memoria de donde se obtienen las instrucciones a ejecutar.
+
+************Inicializacion********************
+La inicializacion se da con un pulso en reset. DEspues de reset pasan 12 ciclos de reloj y las instrucciones se comienzan a ejecutar.
