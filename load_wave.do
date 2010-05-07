@@ -21,8 +21,6 @@ add wave -noupdate -format Literal -radix unsigned /tb_top/mem_ref_top/io_joypad
 add wave -noupdate -format Literal -radix unsigned /tb_top/mem_ref_top/io_joypad2
 add wave -noupdate -format Literal -radix unsigned /tb_top/mem_ref_top/io_spr_ram_dma_r
 add wave -noupdate -format Literal -radix unsigned /tb_top/mem_ref_top/io_spr_ram_dma
-add wave -noupdate -format Literal -radix unsigned /tb_top/mem_ref_top/mem_rom_r
-add wave -noupdate -format Literal -radix unsigned /tb_top/mem_ref_top/mem_rom
 add wave -noupdate -format Literal -radix unsigned /tb_top/mem_ref_top/mem_ram_r
 add wave -noupdate -format Literal -radix unsigned /tb_top/mem_ref_top/mem_ram
 add wave -noupdate -format Literal -radix unsigned /tb_top/mem_ref_top/mem_sram_r

@@ -16,7 +16,7 @@ class request_item extends item_base;
    }
 
    virtual function string to_string();
-      return $sformatf("request [%p]", this.id);
+      return $sformatf("%s [%p]", this.name, this.id);
    endfunction
 
 endclass

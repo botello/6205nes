@@ -8,6 +8,7 @@
 
 class tb_env extends component_base;
 
+   protected virtual tb_cpu_if vi;
    tb_driver driver;
    tb_monitor monitor;
    tb_generator generator;
@@ -28,6 +29,7 @@ class tb_env extends component_base;
    endfunction
 
    virtual function void assign_vi(virtual interface tb_cpu_if vi);
+      this.vi = vi;
       driver.assign_vi(vi);
       monitor.assign_vi(vi);
    endfunction
@@ -38,7 +40,7 @@ class tb_env extends component_base;
       configure();
       run();
       report();
-      $finish();
+      //$finish();
    endtask
 
    virtual function void connect();
@@ -70,6 +72,7 @@ class tb_env extends component_base;
       driver.report();
       monitor.report();
       generator.report();
+      scoreboard.report();
    endfunction
 
 endclass

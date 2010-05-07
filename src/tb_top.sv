@@ -10,6 +10,9 @@
 
 module tb_top();
 
+   import tb_pkg::*;
+   import mem_pkg::*;
+
    `include "tb.svh"
 
    // Design Under Verification.

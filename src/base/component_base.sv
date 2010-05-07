@@ -27,6 +27,23 @@ class component_base extends object_base;
       report_info("REPORT", "Started...");
    endfunction
 
+   function void report_info(string id, string msg);
+      $display("@%p INFO %s [%s] %s", $time, this.name, id, msg);
+   endfunction
+
+   function void report_warning(string id, string msg);
+      $display("@%p WARNING %s [%s] %s", $time, this.name, id, msg);
+   endfunction
+
+   function void report_error(string id, string msg);
+      $display("@%p ERROR %s [%s] %s", $time, this.name, id, msg);
+   endfunction
+
+   function void report_fatal(string id, string msg);
+      $display("@%p FATAL %s [%s] %s", $time, this.name, id, msg);
+      $finish();
+   endfunction
+
 endclass
 
 `endif
