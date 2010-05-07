@@ -12,7 +12,7 @@ class response_item extends item_base;
    endfunction
 
    virtual function string to_string();
-      return $sformatf("Response [%p]", this.id);
+      return $sformatf("%s [%p]", this.name, this.id);
    endfunction
 
 endclass
