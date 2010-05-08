@@ -1,4 +1,4 @@
-vsim -novopt -hazards -assertdebug -permit_unmatched_virtual_intf -solvefaildebug\
+vsim -cover -novopt -hazards -assertdebug -permit_unmatched_virtual_intf -solvefaildebug\
    -do vsim.do -c\
    -suppress 3829\
    +nowarn8360\

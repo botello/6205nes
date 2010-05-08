@@ -13,15 +13,37 @@ module tb_coverage (
 
    import mem_pkg::*;
 
+   typedef enum logic [7:0] {
+      LDA_IMM    = 'hA9,
+      LDA_ZPAGE  = 'hA5,
+      LDA_ZPAGEX = 'hB5,
+      LDA_ABS    = 'hAD,
+      LDA_ABSX   = 'hBD,
+      LDA_ABSY   = 'hB9,
+      LDA_INDX   = 'hA1,
+      LDA_INDY   = 'hB1,
+      STA_ZPAGE  = 'h85,
+      STA_ZPAGEX = 'h95,
+      STA_INDX   = 'h81,
+      STA_INDY   = 'h91,
+      STA_ABS    = 'h8D,
+      STA_ABSX   = 'h9D,
+      STA_ABSY   = 'h99
+   } opcode_t;
+
    covergroup cg_sta @(posedge cpu_ref_intf.clk);
-      cp_sta0: coverpoint cpu_ref_intf.wen {
-         bins n_wen   = {1'b1};
-         bins n_b_wen = {1'b0};
+      cp_store: coverpoint cpu_ref_intf.wen {
+         bins n_wen    = {1'b1};
+         bins others[] = default;
       }
+      cp_sta_addr_mode: coverpoint opcode_t'(cpu_ref_intf.opcode);
    endgroup
 
    covergroup cg_lda @(posedge cpu_ref_intf.clk);
-      cp_lda0: coverpoint cpu_ref_intf.ren;
+      cp_load: coverpoint cpu_ref_intf.ren {
+         bins n_ren    = {1'b1};
+         bins others[] = default;
+      }
    endgroup
 
    cg_sta cg_sta_inst = new();
