@@ -113,7 +113,12 @@ class tb_monitor extends component_base;
    task verify_wmem(longint count, int unsigned addr, int unsigned data);
       int unsigned rdata;
       @(posedge vi.clk);
-      rdata = vi.mem_ram_r[addr[11:0]];
+      case (addr[15:13])
+         ADDR_15_13_RAM   : rdata = vi.mem_ram_r  [addr[10:0]];
+         ADDR_15_13_SRAM  : rdata = vi.mem_sram_r [addr[12:0]];
+         ADDR_15_13_IOREG : rdata = vi.mem_ioreg_r[addr[02:0]];
+         ADDR_15_13_OTHER : rdata = 'x;
+      endcase
       if (rdata == data)
          report_info("MEM", $sformatf("#%p WRITE %s [0x%x] = 0x%x", count, decode_addr(addr), addr, data));
       else 
