@@ -58,6 +58,7 @@ module tb_top();
       cpu_ref_intf.q_x_o_i = cpu_ref_top.refmodel.q_x_o_i;
       cpu_ref_intf.q_y_o_i = cpu_ref_top.refmodel.q_y_o_i;
       cpu_ref_intf.opcode  = cpu_ref_top.refmodel.U_4.zw_REG_OP;
+      cpu_ref_intf.fsm_current_state = cpu_ref_top.refmodel.U_4.current_state;
 
       cpu_ref_intf.mem_rom_r   = mem_ref_top.mem_rom_r;
       cpu_ref_intf.mem_ram_r   = mem_ref_top.mem_ram_r;
