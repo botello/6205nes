@@ -29,6 +29,7 @@ interface tb_cpu_if ();
    reg [7:0] mem_ioreg_r [2**03-1:0];
 
    reg [7:0] opcode;
+   reg [7:0] fsm_current_state;
 
    modport cpu (
       input  clk,
