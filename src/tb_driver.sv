@@ -30,7 +30,8 @@ class tb_driver extends component_base;
 
       init_signals();
 
-      wait_for_rst();
+      drive_rst(1, 6);
+
       repeat (n_items) begin
          @(posedge vi.clk);
          inbox.get(req);
@@ -39,14 +40,21 @@ class tb_driver extends component_base;
       end
    endtask
 
-   protected task wait_for_rst();
-      @(negedge vi.b_rst);
-      @(posedge vi.clk);
+   protected task drive_rst(int unsigned n_reset, int unsigned n_wait);
+      vi.b_rst = 'h0;
+      repeat (n_reset) @(posedge vi.clk);
+      vi.b_rst = 'h1;
+      repeat (n_wait) @(posedge vi.clk);
    endtask
 
    virtual protected task drive_req(request_item req, output response_item rsp);
       // drive item to interface.
       @(posedge vi.clk);
+
+      //drive_nmi(12);
+
+      //@(posedge vi.clk);
+      //vi.cpu_data_in = req.inst;
 
       report_info("RUN", $sformatf("Driven: %s", req.to_string()));
       // copy information to response message.
@@ -54,7 +62,16 @@ class tb_driver extends component_base;
       rsp.id = req.id;
    endtask
 
+   task drive_nmi(int unsigned n_cycles);
+      vi.b_nmi = 0;
+      repeat (n_cycles) begin
+         @(posedge vi.clk);
+      end
+      vi.b_nmi = 1;
+   endtask
+
    virtual task init_signals();
+      vi.b_rst = 'h1;
       vi.b_nmi = 'h1;
       vi.b_irq = 'h1;
       vi.rdy   = 'h1;
