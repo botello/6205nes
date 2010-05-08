@@ -62,7 +62,6 @@ module mem_top(tb_cpu_if.mem intf);
                   ADDR_JOYPAD1     : intf.cpu_data_in = io_joypad1_r;
                   ADDR_JOYPAD2     : intf.cpu_data_in = io_joypad2_r;
                   ADDR_SPR_RAM_DMA : intf.cpu_data_in = io_spr_ram_dma;
-                  16'h0001         : intf.cpu_data_in = 8'hCA;
                   default          : begin
                      intf.cpu_data_in = 8'hXX;
                      $display("%p [MEM] READ operation to IO not implemented at [0x%h]", $time, intf.cpu_addr_out);
@@ -74,7 +73,7 @@ module mem_top(tb_cpu_if.mem intf);
       end
    end
 
-   always @(posedge intf.clk) begin : mem_write_proc
+   always @(*) begin : mem_write_proc
       integer i;
       for (i = 0; i < 2**15; i = i + 1) mem_rom[i]   = mem_rom_r[i];
       for (i = 0; i < 2**13; i = i + 1) mem_sram[i]  = mem_sram_r[i];
@@ -125,6 +124,8 @@ module mem_top(tb_cpu_if.mem intf);
 
    initial begin : rom_init_proc
       integer i, j; string s; string filename;
+      //filename = "src/programs/simple.txt";
+      //filename = "src/programs/rom8kx8.mem";
       filename = "src/programs/SMB_32PRG.txt";
       for (i = 0; i < 2**15; i = i + 1) mem_rom_init[i] = 'h0;
       $readmemh(filename, mem_rom_init);

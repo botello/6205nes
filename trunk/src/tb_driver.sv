@@ -30,7 +30,7 @@ class tb_driver extends component_base;
 
       init_signals();
 
-      drive_rst(1, 6);
+      drive_rst(1, 2, 6);
 
       repeat (n_items) begin
          @(posedge vi.clk);
@@ -40,11 +40,13 @@ class tb_driver extends component_base;
       end
    endtask
 
-   protected task drive_rst(int unsigned n_reset, int unsigned n_wait);
+   protected task drive_rst(int unsigned n_wait_before, int unsigned n_reset, int unsigned n_wait_after);
+      vi.b_rst = 'h1;
+      repeat (n_wait_before) @(posedge vi.clk);
       vi.b_rst = 'h0;
       repeat (n_reset) @(posedge vi.clk);
       vi.b_rst = 'h1;
-      repeat (n_wait) @(posedge vi.clk);
+      repeat (n_wait_after) @(posedge vi.clk);
    endtask
 
    virtual protected task drive_req(request_item req, output response_item rsp);
