@@ -30,15 +30,18 @@ module tb_top();
       .cpu_duv_intf(cpu_duv_intf)
    );
 
-   tb_env env;
+   tb_env tb_env_duv, tb_env_ref;
    initial begin
-      env = new();
-      //
-      // TODO: right now, we are only using the reference model.
-      //
-      env.assign_vi(cpu_ref_intf.tb);
-      //env.assign_vi(cpu_duv_intf.tb);
-      env.start_test();
+      tb_env_duv = new("duv");
+      tb_env_duv.assign_vi(cpu_duv_intf.tb);
+
+      tb_env_ref = new("ref");
+      tb_env_ref.assign_vi(cpu_ref_intf.tb);
+
+      fork
+         tb_env_duv.start_test();
+         tb_env_ref.start_test();
+      join
    end
 
    initial begin : clk_gen_proc
@@ -52,18 +55,28 @@ module tb_top();
    end
 
    always_comb begin : vi_signal_assign
-      integer i;
-
       cpu_ref_intf.q_a_o_i = cpu_ref_top.refmodel.q_a_o_i;
       cpu_ref_intf.q_x_o_i = cpu_ref_top.refmodel.q_x_o_i;
       cpu_ref_intf.q_y_o_i = cpu_ref_top.refmodel.q_y_o_i;
-      cpu_ref_intf.opcode  = cpu_ref_top.refmodel.U_4.zw_REG_OP;
+      cpu_ref_intf.opcode = cpu_ref_top.refmodel.U_4.zw_REG_OP;
       cpu_ref_intf.fsm_current_state = cpu_ref_top.refmodel.U_4.current_state;
-
-      cpu_ref_intf.mem_rom_r   = mem_ref_top.mem_rom_r;
-      cpu_ref_intf.mem_ram_r   = mem_ref_top.mem_ram_r;
-      cpu_ref_intf.mem_sram_r  = mem_ref_top.mem_sram_r;
+      cpu_ref_intf.mem_rom_r = mem_ref_top.mem_rom_r;
+      cpu_ref_intf.mem_ram_r = mem_ref_top.mem_ram_r;
+      cpu_ref_intf.mem_sram_r = mem_ref_top.mem_sram_r;
       cpu_ref_intf.mem_ioreg_r = mem_ref_top.mem_ioreg_r;
+
+      //
+      // TODO: Assign actual register and signals from DUV to interface.
+      //
+      cpu_duv_intf.q_a_o_i = cpu_duv_top.nes_cpu.CPU_DP_I0.DP_ACC;
+      cpu_duv_intf.q_x_o_i = cpu_duv_top.nes_cpu.CPU_DP_I0.DP_XR;
+      cpu_duv_intf.q_y_o_i = cpu_duv_top.nes_cpu.CPU_DP_I0.DP_YR;
+      //cpu_duv_intf.opcode = cpu_duv_top.nes_cpu.U_4.zw_REG_OP;
+      //cpu_duv_intf.fsm_current_state = cpu_duv_top.nes_cpu.U_4.current_state;
+      cpu_duv_intf.mem_rom_r = mem_duv_top.mem_rom_r;
+      cpu_duv_intf.mem_ram_r = mem_duv_top.mem_ram_r;
+      cpu_duv_intf.mem_sram_r = mem_duv_top.mem_sram_r;
+      cpu_duv_intf.mem_ioreg_r = mem_duv_top.mem_ioreg_r;
    end
 
 endmodule

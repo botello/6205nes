@@ -20,10 +20,10 @@ class tb_env extends component_base;
    function new(string name = "tb_env", component_base parent = null);
       this.name = name;
       this.parent = parent;
-      driver = new("driver", this);
-      monitor = new("monitor", this);
-      generator = new("generator", this);
-      scoreboard = new("scoreboard", this);
+      driver = new({name, "_driver"}, this);
+      monitor = new({name, "_monitor"}, this);
+      generator = new({name, "_generator"}, this);
+      scoreboard = new({name, "_scoreboard"}, this);
       generator_to_driver_mbox = new();
       driver_to_scoreboard_mbox = new();
    endfunction

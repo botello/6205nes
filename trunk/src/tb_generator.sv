@@ -22,7 +22,7 @@ class tb_generator extends component_base;
       request_item req;
 
       repeat (n_items) begin
-         req = new();
+         req = new({name, "_req_item"});
          assert (req.randomize() > 0) else begin
             report_warning("RUN", $sformatf("Failed to randomize item: %s", req.to_string()));
          end

@@ -21,16 +21,26 @@
 
 module cpu_duv_top(tb_cpu_if.cpu intf);
 
-/*
    nes_if nes_intf(
       .NES_clk   ( intf.clk   ),
       .NES_b_rst ( intf.b_rst )
    );
 
    NES_CPU nes_cpu(
-      .nes_if ( nes_intf.cpu )
+      .nes_if0 ( nes_intf.cpu )
    );
-*/
+
+   always_comb begin : signal_assign_proc
+      nes_intf.b_nmi = intf.b_nmi;
+      nes_intf.b_irq = intf.b_irq;
+      intf.syn_clk = nes_intf.phi2;
+      intf.ren =  nes_intf.r_bw;
+      intf.wen = ~nes_intf.r_bw;
+      intf.cpu_addr_out = nes_intf.addr;
+      //if (intf.ren) nes_intf.data = intf.cpu_data_in;
+      if (intf.wen) intf.cpu_data_out = nes_intf.data;
+   end
+
 endmodule
 
 `endif
