@@ -31,16 +31,9 @@ module tb_top();
       // TODO: right now, we are only using the reference model.
       //
       env.assign_vi(cpu_ref_intf.tb);
+      //env.assign_vi(cpu_duv_intf.tb);
       env.start_test();
    end
-
-   //initial begin : rst_gen_proc
-   //   cpu_ref_intf.b_rst = 'h0;
-   //   cpu_duv_intf.b_rst = 'h0;
-   //   repeat (6) @(posedge cpu_ref_intf.clk);
-   //   cpu_ref_intf.b_rst = 'h1;
-   //   cpu_ref_intf.b_rst = 'h1;
-   //end
 
    initial begin : clk_gen_proc
       cpu_ref_intf.clk = 'h0;
