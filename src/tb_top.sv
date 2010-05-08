@@ -7,6 +7,7 @@
 `include "mem_top.sv"
 `include "cpu_ref_top.sv"
 `include "cpu_duv_top.sv"
+`include "tb_coverage.sv"
 
 module tb_top();
 
@@ -23,6 +24,11 @@ module tb_top();
    tb_cpu_if   cpu_ref_intf();
    mem_top     mem_ref_top(cpu_ref_intf.mem);
    cpu_ref_top cpu_ref_top(cpu_ref_intf.cpu);
+
+   tb_coverage tb_coverage (
+      .cpu_ref_intf(cpu_ref_intf),
+      .cpu_duv_intf(cpu_duv_intf)
+   );
 
    tb_env env;
    initial begin
