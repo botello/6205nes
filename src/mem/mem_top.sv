@@ -9,7 +9,7 @@ module mem_top(tb_cpu_if.mem intf);
 
    import mem_pkg::*;
 
-   logic debug_mode = 1;
+   logic debug_mode = 0;
 
    reg [7:0] mem_rom_init[2**15-1:0];
    reg [7:0] mem_rom_r   [2**15-1:0];
@@ -64,7 +64,7 @@ module mem_top(tb_cpu_if.mem intf);
                   ADDR_SPR_RAM_DMA : intf.cpu_data_in = io_spr_ram_dma;
                   default          : begin
                      intf.cpu_data_in = 8'hXX;
-                     $display("%p [MEM] READ operation to IO not implemented at [0x%h]", $time, intf.cpu_addr_out);
+                     if (debug_mode) $display("%p [MEM] READ operation to IO not implemented at [0x%h]", $time, intf.cpu_addr_out);
                   end
                endcase
             end
@@ -89,7 +89,7 @@ module mem_top(tb_cpu_if.mem intf);
             ADDR_15_13_ROM0,
             ADDR_15_13_ROM1,
             ADDR_15_13_ROM2,
-            ADDR_15_13_ROM3  : $display("%p [MEM] WRITE operation to ROM detected at [0x%h] 0x%h", $time, intf.cpu_addr_out, intf.cpu_data_out);
+            ADDR_15_13_ROM3  : if (debug_mode) $display("%p [MEM] WRITE operation to ROM detected at [0x%h] 0x%h", $time, intf.cpu_addr_out, intf.cpu_data_out);
             ADDR_15_13_RAM   : mem_ram  [intf.cpu_addr_out[10:0]] = intf.cpu_data_out;
             ADDR_15_13_SRAM  : mem_sram [intf.cpu_addr_out[12:0]] = intf.cpu_data_out;
             ADDR_15_13_IOREG : mem_ioreg[intf.cpu_addr_out[02:0]] = intf.cpu_data_out;
@@ -102,7 +102,7 @@ module mem_top(tb_cpu_if.mem intf);
                   ADDR_JOYPAD1     : io_joypad1     = intf.cpu_data_out;
                   ADDR_JOYPAD2     : io_joypad2     = intf.cpu_data_out;
                   ADDR_SPR_RAM_DMA : io_spr_ram_dma = intf.cpu_data_out;
-                  default          : $display("%p [MEM] WRITE operation to IO not implemented at [0x%h] 0x%h", $time, intf.cpu_addr_out, intf.cpu_data_out);
+                  default          : if (debug_mode) $display("%p [MEM] WRITE operation to IO not implemented at [0x%h] 0x%h", $time, intf.cpu_addr_out, intf.cpu_data_out);
                endcase
             end
          endcase
@@ -124,20 +124,19 @@ module mem_top(tb_cpu_if.mem intf);
 
    initial begin : rom_init_proc
       integer i, j; string s; string filename;
-      filename = "src/programs/simple.txt";
+      filename = "src/programs/datosMem.txt";
+      //filename = "src/programs/simple.txt";
       //filename = "src/programs/rom8kx8.mem";
       //filename = "src/programs/SMB_32PRG.txt";
       for (i = 0; i < 2**15; i = i + 1) mem_rom_init[i] = 'h0;
       $readmemh(filename, mem_rom_init);
 
-      if (debug_mode) begin
-         s = $sformatf("%p [MEM] INIT ROM '%s':", $time, filename);
-         for (i = 0; i < 2**15; i = i + 32) begin
-            s = {s, $sformatf("\n [%h] ", i + 'h8000)};
-            for (j = 0; j < 32; j = j + 1) s = {s, $sformatf(" %h", mem_rom_init[i + j])};
-         end
-         $display("%s\n", s);
+      s = $sformatf("%p [MEM] INIT ROM '%s':", $time, filename);
+      for (i = 0; i < 2**15; i = i + 32) begin
+         s = {s, $sformatf("\n [%h] ", i + 'h8000)};
+         for (j = 0; j < 32; j = j + 1) s = {s, $sformatf(" %h", mem_rom_init[i + j])};
       end
+      $display("%s\n", s);
    end
 
 endmodule

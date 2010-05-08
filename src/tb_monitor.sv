@@ -8,8 +8,11 @@
 class tb_monitor extends component_base;
 
    protected virtual tb_cpu_if vi;
-   bit enable_rmem = 1;
-   bit enable_wmem = 1;
+   bit enable_rmem    = 1;
+   bit enable_wmem    = 1;
+   bit enable_reg_acc = 1;
+   bit enable_reg_x   = 1;
+   bit enable_reg_y   = 1;
 
    function new(string name = "tb_monitor", component_base patent);
       this.name = name;
@@ -29,12 +32,60 @@ class tb_monitor extends component_base;
       fork
          monitor_rmem();
          monitor_wmem();
+         monitor_reg_acc();
+         monitor_reg_x();
+         monitor_reg_y();
       join
    endtask
 
    virtual function void report();
       super.report();
    endfunction
+
+   virtual protected task monitor_reg_acc();
+      int unsigned last_value;
+      longint count = 0;
+      last_value = 'x;
+      forever begin
+         @(posedge vi.clk);
+         if (enable_reg_acc) begin
+            if (vi.q_a_o_i != last_value) begin
+               last_value = vi.q_a_o_i;
+               report_info("CPU", $sformatf("#%p REG WRITE ACC = 0x%x", ++count, vi.q_a_o_i));
+            end
+         end
+      end
+   endtask
+
+   virtual protected task monitor_reg_y();
+      int unsigned last_value;
+      longint count = 0;
+      last_value = 'x;
+      forever begin
+         @(posedge vi.clk);
+         if (enable_reg_acc) begin
+            if (vi.q_y_o_i != last_value) begin
+               last_value = vi.q_y_o_i;
+               report_info("CPU", $sformatf("#%p REG WRITE Y = 0x%x", ++count, vi.q_y_o_i));
+            end
+         end
+      end
+   endtask
+
+   virtual protected task monitor_reg_x();
+      int unsigned last_value;
+      longint count = 0;
+      last_value = 'x;
+      forever begin
+         @(posedge vi.clk);
+         if (enable_reg_acc) begin
+            if (vi.q_x_o_i != last_value) begin
+               last_value = vi.q_x_o_i;
+               report_info("CPU", $sformatf("#%p REG WRITE X = 0x%x", ++count, vi.q_x_o_i));
+            end
+         end
+      end
+   endtask
 
    virtual protected task monitor_rmem();
       longint count = 0;
@@ -54,11 +105,19 @@ class tb_monitor extends component_base;
       forever begin
          @(posedge vi.clk);
          if (enable_wmem) begin
-            if (vi.wen) begin
-               report_info("MEM", $sformatf("#%p WRITE %s [0x%x] = 0x%x", ++count, decode_addr(vi.cpu_addr_out), vi.cpu_addr_out, vi.cpu_data_out));
-            end
+            if (vi.wen) fork verify_wmem(++count, vi.cpu_addr_out, vi.cpu_data_out); join_none
          end
       end
+   endtask
+
+   task verify_wmem(longint count, int unsigned addr, int unsigned data);
+      int unsigned rdata;
+      @(posedge vi.clk);
+      rdata = vi.mem_ram_r[addr[11:0]];
+      if (rdata == data)
+         report_info("MEM", $sformatf("#%p WRITE %s [0x%x] = 0x%x", count, decode_addr(addr), addr, data));
+      else 
+         report_error("MEM", $sformatf("#%p WRITE FAILED %s [0x%x] = 0x%x (expected: 0x%x)", count, decode_addr(addr), addr, rdata, data));
    endtask
 
    local function string decode_addr(int unsigned addr);
