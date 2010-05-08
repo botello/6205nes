@@ -7,15 +7,25 @@ package mem_pkg;
 
    // Memory address map (4 MSB):
    //   Address[15:13] == 3'b1XX PrgROM           32kB de ROM at Address[14:0]
-   //   Address[15:13] == 3'b011 SRAM              8kB de RAM at Address[12:0]
+   //   Address[15:13] == 3'b011 SRAM              8kB de SRAM at Address[12:0]
    //   Address[15:13] == 3'b000 RAM               2kB de RAM at Address[10:0]
    //   Address[15:13] == 3'b001 Picture I/O regs  8Bytes IO  at Address[2:0]
    //   Address[15:13] == 3'b010 Expanssion ROM, audio, DMA & controllers I/O regs (see IO register map below).
-   localparam  ADDR_15_13_ROM   = 3'b1XX,
+   localparam  ADDR_15_13_ROM0  = 3'b100,
+               ADDR_15_13_ROM1  = 3'b101,
+               ADDR_15_13_ROM2  = 3'b110,
+               ADDR_15_13_ROM3  = 3'b111,
                ADDR_15_13_SRAM  = 3'b011,
                ADDR_15_13_OTHER = 3'b010,
                ADDR_15_13_IOREG = 3'b001,
                ADDR_15_13_RAM   = 3'b000;
+
+   localparam  ADDR_RESET_H = 16'hFFFD,
+               ADDR_RESET_L = 16'hFFFC,
+               ADDR_NMI_H   = 16'hFFFB,
+               ADDR_NMI_L   = 16'hFFFA,
+               ADDR_IRQ_H   = 16'hFFFF,
+               ADDR_IRQ_L   = 16'hFFFE;
 
    // IO Register map:
    //   2000h - PPU Control Register 1 (W)

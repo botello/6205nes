@@ -64,7 +64,10 @@ class tb_monitor extends component_base;
    local function string decode_addr(int unsigned addr);
       string s; s = "OTHER";
       case (addr[15:13])
-         ADDR_15_13_ROM   : s = "ROM";
+         ADDR_15_13_ROM0,
+         ADDR_15_13_ROM1,
+         ADDR_15_13_ROM2,
+         ADDR_15_13_ROM3  : s = "ROM";
          ADDR_15_13_RAM   : s = "RAM";
          ADDR_15_13_SRAM  : s = "SRAM";
          ADDR_15_13_IOREG : s = "IOREG";

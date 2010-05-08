@@ -9,7 +9,7 @@ module mem_top(tb_cpu_if.mem intf);
 
    import mem_pkg::*;
 
-   logic debug_mode = 0;
+   logic debug_mode = 1;
 
    reg [7:0] mem_rom_init[2**15-1:0];
    reg [7:0] mem_rom_r   [2**15-1:0];
@@ -31,7 +31,20 @@ module mem_top(tb_cpu_if.mem intf);
 
       if (intf.ren) begin
          case (intf.cpu_addr_out[15:13])
-            ADDR_15_13_ROM   : intf.cpu_data_in = mem_rom_r[intf.cpu_addr_out[14:0]];
+            ADDR_15_13_ROM0,
+            ADDR_15_13_ROM1,
+            ADDR_15_13_ROM2,
+            ADDR_15_13_ROM3 : begin
+               case (intf.cpu_addr_out)
+                  ADDR_RESET_H : intf.cpu_data_in = 8'h80;
+                  ADDR_RESET_L : intf.cpu_data_in = 8'h00;
+                  ADDR_NMI_H   : intf.cpu_data_in = 8'h80;
+                  ADDR_NMI_L   : intf.cpu_data_in = 8'h00;
+                  ADDR_IRQ_H   : intf.cpu_data_in = 8'h80;
+                  ADDR_IRQ_L   : intf.cpu_data_in = 8'h00;
+                  default      : intf.cpu_data_in = mem_rom_r[intf.cpu_addr_out[14:0]];
+               endcase
+            end
             ADDR_15_13_RAM   : intf.cpu_data_in = mem_ram_r[intf.cpu_addr_out[10:0]];
             ADDR_15_13_SRAM  : intf.cpu_data_in = mem_sram_r[intf.cpu_addr_out[12:0]];
             ADDR_15_13_IOREG : intf.cpu_data_in = mem_ioreg_r[intf.cpu_addr_out[02:0]];
@@ -74,7 +87,10 @@ module mem_top(tb_cpu_if.mem intf);
 
       if (intf.wen) begin
          case (intf.cpu_addr_out[15:13])
-            ADDR_15_13_ROM   : $display("%p [MEM] WRITE operation to ROM detected at [0x%h] 0x%h", $time, intf.cpu_addr_out, intf.cpu_data_out);
+            ADDR_15_13_ROM0,
+            ADDR_15_13_ROM1,
+            ADDR_15_13_ROM2,
+            ADDR_15_13_ROM3  : $display("%p [MEM] WRITE operation to ROM detected at [0x%h] 0x%h", $time, intf.cpu_addr_out, intf.cpu_data_out);
             ADDR_15_13_RAM   : mem_ram  [intf.cpu_addr_out[10:0]] = intf.cpu_data_out;
             ADDR_15_13_SRAM  : mem_sram [intf.cpu_addr_out[12:0]] = intf.cpu_data_out;
             ADDR_15_13_IOREG : mem_ioreg[intf.cpu_addr_out[02:0]] = intf.cpu_data_out;
@@ -116,7 +132,7 @@ module mem_top(tb_cpu_if.mem intf);
       if (debug_mode) begin
          s = $sformatf("%p [MEM] INIT ROM '%s':", $time, filename);
          for (i = 0; i < 2**15; i = i + 32) begin
-            s = {s, $sformatf("\n [%h] ", i)};
+            s = {s, $sformatf("\n [%h] ", i + 'h8000)};
             for (j = 0; j < 32; j = j + 1) s = {s, $sformatf(" %h", mem_rom_init[i + j])};
          end
          $display("%s\n", s);
