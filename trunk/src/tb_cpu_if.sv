@@ -19,6 +19,15 @@ interface tb_cpu_if ();
    logic        rdy;
    logic        so;
 
+   logic [ 7:0] q_a_o_i;
+   logic [ 7:0] q_x_o_i;
+   logic [ 7:0] q_y_o_i;
+
+   reg [7:0] mem_rom_r   [2**15-1:0];
+   reg [7:0] mem_ram_r   [2**11-1:0];
+   reg [7:0] mem_sram_r  [2**13-1:0];
+   reg [7:0] mem_ioreg_r [2**03-1:0];
+
    modport cpu (
       input  clk,
       input  b_rst,

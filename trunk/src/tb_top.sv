@@ -45,6 +45,26 @@ module tb_top();
       end
    end
 
+   always_comb begin : vi_signal_assign
+      integer i;
+
+      cpu_ref_intf.q_a_o_i = cpu_ref_top.refmodel.q_a_o_i;
+      cpu_ref_intf.q_x_o_i = cpu_ref_top.refmodel.q_x_o_i;
+      cpu_ref_intf.q_y_o_i = cpu_ref_top.refmodel.q_y_o_i;
+//      cpu_duv_intf.q_a_o_i = cpu_duv_top.refmodel.q_a_o_i;
+//      cpu_duv_intf.q_x_o_i = cpu_duv_top.refmodel.q_x_o_i;
+//      cpu_duv_intf.q_y_o_i = cpu_duv_top.refmodel.q_y_o_i;
+
+      cpu_ref_intf.mem_rom_r = mem_ref_top.mem_rom_r;
+      cpu_ref_intf.mem_ram_r = mem_ref_top.mem_ram_r;
+      cpu_ref_intf.mem_sram_r = mem_ref_top.mem_sram_r;
+      cpu_ref_intf.mem_ioreg_r = mem_ref_top.mem_ioreg_r;
+      cpu_duv_intf.mem_rom_r = mem_duv_top.mem_rom_r;
+      cpu_duv_intf.mem_ram_r = mem_duv_top.mem_ram_r;
+      cpu_duv_intf.mem_sram_r = mem_duv_top.mem_sram_r;
+      cpu_duv_intf.mem_ioreg_r = mem_duv_top.mem_ioreg_r;
+   end
+
 endmodule
 
 `endif
