@@ -124,9 +124,9 @@ module mem_top(tb_cpu_if.mem intf);
 
    initial begin : rom_init_proc
       integer i, j; string s; string filename;
-      //filename = "src/programs/simple.txt";
+      filename = "src/programs/simple.txt";
       //filename = "src/programs/rom8kx8.mem";
-      filename = "src/programs/SMB_32PRG.txt";
+      //filename = "src/programs/SMB_32PRG.txt";
       for (i = 0; i < 2**15; i = i + 1) mem_rom_init[i] = 'h0;
       $readmemh(filename, mem_rom_init);
 
