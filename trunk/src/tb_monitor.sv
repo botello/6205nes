@@ -126,6 +126,7 @@ class tb_monitor extends component_base;
             if (vi.muxRegSel != last_value) begin
                last_value = vi.muxRegSel;
                report_info("MUX", $sformatf("#%p MUX REG SEL= 0x%x", ++count, vi.muxRegSel));
+			   if (vi.muxRegSel) fork verify_muxReg(++count, vi.muxRegSel); join_none
 			 end
          end
       end
@@ -144,6 +145,21 @@ class tb_monitor extends component_base;
 			 end
          end
       end
+   endtask
+   
+   task verify_muxReg(longint count, reg [1:0] muxRegSelect);
+      int unsigned muxSelecction;
+      @(posedge vi.clk);
+      case (muxRegSelect)
+			'h0: muxSelecction = 0;  //A
+			'h1: muxSelecction = 1; // X
+			'h2: muxSelecction = 2;  //Y
+			'h3: muxSelecction = 3;  //SP
+      endcase
+      if (muxSelecction  == muxRegSelect)
+         report_info("MUX", $sformatf("#%p MUX SELECCTION CORRECT 0x%x", count, muxRegSelect));
+      else 
+         report_error("MUX", $sformatf("#%p MUX SELECCTION  FAILED  0x%x (expected: 0x%x)", count, vi.muxRegSel, muxRegSelect));
    endtask
    
    
