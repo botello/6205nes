@@ -13,6 +13,8 @@ class tb_monitor extends component_base;
    bit enable_reg_acc = 1;
    bit enable_reg_x   = 1;
    bit enable_reg_y   = 1;
+   bit enable_mux_reg = 1; //ricardo
+   bit enable_mux_reg_Out = 1; //ricardo
 
    function new(string name = "tb_monitor", component_base patent);
       this.name = name;
@@ -35,6 +37,8 @@ class tb_monitor extends component_base;
          monitor_reg_acc();
          monitor_reg_x();
          monitor_reg_y();
+		 monitor_mux_reg(); //ricardo monitor
+		 monitor_mux_reg_out(); // ricardo monitor
       join
    endtask
 
@@ -63,7 +67,8 @@ class tb_monitor extends component_base;
       last_value = 'x;
       forever begin
          @(posedge vi.clk);
-         if (enable_reg_acc) begin
+         //if (enable_reg_acc) begin
+		 if (enable_reg_y) begin //ricardo
             if (vi.q_y_o_i != last_value) begin
                last_value = vi.q_y_o_i;
                report_info("CPU", $sformatf("#%p REG WRITE Y = 0x%x", ++count, vi.q_y_o_i));
@@ -78,7 +83,8 @@ class tb_monitor extends component_base;
       last_value = 'x;
       forever begin
          @(posedge vi.clk);
-         if (enable_reg_acc) begin
+         //if (enable_reg_acc) begin
+		 if (enable_reg_x) begin //Ricardo
             if (vi.q_x_o_i != last_value) begin
                last_value = vi.q_x_o_i;
                report_info("CPU", $sformatf("#%p REG WRITE X = 0x%x", ++count, vi.q_x_o_i));
@@ -109,7 +115,40 @@ class tb_monitor extends component_base;
          end
       end
    endtask
+/*begin Ricardo's block*/
+   virtual protected task monitor_mux_reg();
+      int unsigned last_value;
+      longint count = 0;
+      last_value = '0;
+      forever begin
+         @(posedge vi.clk);
+         if (enable_mux_reg) begin
+            if (vi.muxRegSel != last_value) begin
+               last_value = vi.muxRegSel;
+               report_info("MUX", $sformatf("#%p MUX REG SEL= 0x%x", ++count, vi.muxRegSel));
+			 end
+         end
+      end
+   endtask
 
+   virtual protected task monitor_mux_reg_out();
+      int unsigned last_value;
+      longint count = 0;
+      last_value = '0;
+      forever begin
+         @(posedge vi.clk);
+         if (enable_mux_reg_Out) begin
+            if (vi.muxOut != last_value) begin
+               last_value = vi.muxOut;
+               report_info("MUX", $sformatf("#%p MUX REG SEL= 0x%x", ++count, vi.muxOut));
+			 end
+         end
+      end
+   endtask
+   
+   
+ /*end Ricardo's block*/   
+   
    task verify_wmem(longint count, int unsigned addr, int unsigned data);
       int unsigned rdata;
       @(posedge vi.clk);

@@ -18,6 +18,7 @@ interface tb_cpu_if ();
    logic        wen;
    logic        rdy;
    logic        so;
+   
 
    logic [ 7:0] q_a_o_i;
    logic [ 7:0] q_x_o_i;
@@ -31,6 +32,13 @@ interface tb_cpu_if ();
    reg [7:0] opcode;
    reg [7:0] fsm_current_state;
 
+   reg [1:0] muxRegSel;
+   reg [1:0] muxOut;
+   reg [7:0] regAinternal;
+   reg [7:0] regXinternal;
+   reg [7:0] regYinternal;
+   
+   
    modport cpu (
       input  clk,
       input  b_rst,
