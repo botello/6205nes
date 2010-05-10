@@ -37,7 +37,15 @@ module tb_coverage (
       STA_INDY   = 'h91,
       STA_ABS    = 'h8D,
       STA_ABSX   = 'h9D,
-      STA_ABSY   = 'h99
+      STA_ABSY   = 'h99,
+      AND_IMM    = 'h29,
+      AND_ZPAGE  = 'h25,
+      AND_ZPAGEX = 'h35,
+      AND_ABS    = 'h2D,
+      AND_ABSX   = 'h3D,
+      AND_ABSY   = 'h39,
+      AND_INDX   = 'h21,
+      AND_INDY   = 'h31
    } opcode_t;
 
    covergroup cg_store @(posedge cpu_ref_intf.clk);
@@ -83,9 +91,22 @@ module tb_coverage (
      // cross_load: cross cp_Mux;
  endgroup
 	  /* end Ricardo's block*/
-	  
+	
+   /* begin Gilberto's block*/
+   covergroup cg_logic_aritmetic @(posedge cpu_ref_intf.clk);
+    cp_and_addr_mode: coverpoint opcode_t'(cpu_ref_intf.opcode) {
+         bins and_addr_mode[] = {AND_ZPAGE, AND_ZPAGEX, AND_INDX, AND_INDY, AND_ABS, AND_ABSX, AND_ABSY, AND_IMM};
+         bins others          = default;
+      }
+      
+      //
+      // TODO: add coverpoints for other AND logic aritmetic operation.
+      //
+   endgroup
+   /* end Gilberto's block*/
 
-   
+
+   cg_logic_aritmetic cg_logic_aritmetic_int = new(); //Gil B.
    cg_Mux  cg_Mux_inst = new(); //ricardo
    cg_load  cg_load_inst = new();
    cg_store cg_store_inst = new();
