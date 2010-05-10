@@ -140,7 +140,7 @@ class tb_monitor extends component_base;
          if (enable_mux_reg_Out) begin
             if (vi.muxOut != last_value) begin
                last_value = vi.muxOut;
-               report_info("MUX", $sformatf("#%p MUX REG SEL= 0x%x", ++count, vi.muxOut));
+               report_info("MUX OUT", $sformatf("#%p MUX REG OUT= 0x%x", ++count, vi.muxOut));
 			 end
          end
       end
