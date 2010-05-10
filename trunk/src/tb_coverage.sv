@@ -13,6 +13,15 @@ module tb_coverage (
 
    import mem_pkg::*;
 
+      typedef enum logic [1:0] {
+      SEL_MUX_A  = 'h0,
+	  SEL_MUX_X  = 'h1,
+      SEL_MUX_Y  = 'h2,
+	  SEL_MUX_SP  = 'h3
+	  } mux_sel;
+      
+   
+   
    typedef enum logic [7:0] {
       LDA_IMM    = 'hA9,
       LDA_ZPAGE  = 'hA5,
@@ -61,6 +70,23 @@ module tb_coverage (
       cross_load: cross cp_load, cp_lda_addr_mode;
    endgroup
 
+   
+	  /* begin Ricardo's block*/
+	covergroup cg_Mux @(posedge cpu_ref_intf.clk);
+	  cp_Mux: coverpoint mux_sel'(cpu_ref_intf.muxRegSel) {
+         bins sta_addr_mode[] = {SEL_MUX_A, SEL_MUX_X, SEL_MUX_Y, SEL_MUX_SP};
+         bins others          = default;
+      }
+	  //
+      // TODO: add coverpoints for other load operations.
+      //
+     // cross_load: cross cp_Mux;
+ endgroup
+	  /* end Ricardo's block*/
+	  
+
+   
+   cg_Mux  cg_Mux_inst = new(); //ricardo
    cg_load  cg_load_inst = new();
    cg_store cg_store_inst = new();
 
