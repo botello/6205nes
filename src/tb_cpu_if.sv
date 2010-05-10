@@ -34,9 +34,13 @@ interface tb_cpu_if ();
 
    reg [1:0] muxRegSel;
    reg [7:0] muxOut;
-   reg [7:0] regAinternal;
-   reg [7:0] regXinternal;
-   reg [7:0] regYinternal;
+   reg [7:0] regAinternal; //Ricardo
+   reg [7:0] regXinternal;//Ricardo
+   reg [7:0] regYinternal;//Ricardo
+   
+   reg [7:0] inst_reg;//Alex
+   reg       phi2;//Alex
+   reg       inst_en;//Alex
    
    
    modport cpu (
