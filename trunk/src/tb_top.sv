@@ -64,8 +64,14 @@ module tb_top();
       cpu_ref_intf.mem_ram_r = mem_ref_top.mem_ram_r;
       cpu_ref_intf.mem_sram_r = mem_ref_top.mem_sram_r;
       cpu_ref_intf.mem_ioreg_r = mem_ref_top.mem_ioreg_r;
-
-      //
+	  
+	  cpu_ref_intf.muxRegSel = cpu_ref_top.refmodel.U_2.sel_reg_i; //Ricardo
+	  cpu_ref_intf.muxOut = cpu_ref_top.refmodel.U_2.q_mux_o_i; //Ricardo
+      cpu_ref_intf.regAinternal = cpu_ref_top.refmodel.U_2.q_a_o_internal; //Ricardo
+	  cpu_ref_intf.regXinternal = cpu_ref_top.refmodel.U_2.q_x_o_internal; //Ricardo
+	  cpu_ref_intf.regYinternal = cpu_ref_top.refmodel.U_2.q_y_o_internal; //Ricardo
+	  
+	  //
       // TODO: Assign actual register and signals from DUV to interface.
       //
       cpu_duv_intf.q_a_o_i = cpu_duv_top.nes_cpu.CPU_DP_I0.DP_ACC;
