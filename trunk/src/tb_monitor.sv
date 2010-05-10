@@ -15,6 +15,9 @@ class tb_monitor extends component_base;
    bit enable_reg_y   = 1;
    bit enable_mux_reg = 1; //ricardo
    bit enable_mux_reg_Out = 1; //ricardo
+    bit enable_inst_en = 1;//Alex
+   bit enable_phi2 = 1; //Alex
+   bit enable_inst_reg = 1;//Alex
 
    function new(string name = "tb_monitor", component_base patent);
       this.name = name;
@@ -39,6 +42,10 @@ class tb_monitor extends component_base;
          monitor_reg_y();
 		 monitor_mux_reg(); //ricardo monitor
 		 monitor_mux_reg_out(); // ricardo monitor
+		 monitor_inst_en ();//Alex monitor
+		 monitor_phi2 ();//Alex monitor
+		 monitor_inst_reg ();//Alex monitor
+
       join
    endtask
 
@@ -164,6 +171,69 @@ class tb_monitor extends component_base;
    
    
  /*end Ricardo's block*/   
+ 
+ 
+  /*begin Alex's block*/
+   virtual protected task monitor_inst_en();
+      int unsigned last_value;
+      longint count = 0;
+      last_value = '0;
+      forever begin
+         @(posedge vi.clk);
+         if (enable_inst_en) begin
+            if (vi.inst_en != last_value) begin
+               last_value = vi.inst_en;
+               report_info("INSTRUCTION_EN", $sformatf("#%p INSTRUCTION_EN= 0x%x", ++count, vi.inst_en));
+			 end
+         end
+      end
+   endtask
+
+   virtual protected task monitor_phi2();
+      int unsigned last_value;
+      longint count = 0;
+      last_value = '0;
+      forever begin
+         @(posedge vi.clk);
+         if (enable_phi2) begin
+            if (vi.phi2 != last_value) begin
+               last_value = vi.phi2;
+               report_info("PHI2", $sformatf("#%p PHI2= 0x%x", ++count, vi.phi2));
+			   if (vi.phi2)fork verify_Save_instruction (++count, vi.phi2, vi.inst_en); join_none 
+			 end
+         end
+      end
+   endtask
+   
+   virtual protected task monitor_inst_reg();
+      int unsigned last_value;
+      longint count = 0;
+      last_value = '0;
+      forever begin
+         @(posedge vi.clk);
+         if (enable_inst_reg) begin
+            if (vi.inst_reg != last_value) begin
+               last_value = vi.inst_reg;
+               report_info("INSTRUCTION_REG", $sformatf("#%p INSTRUCTION_REG= 0x%x", ++count, vi.inst_reg));
+			    
+			 end
+         end
+      end
+   endtask
+   
+   
+   task verify_Save_instruction(longint count, bit phi2, bit inst_en);
+    @(posedge vi.clk);
+      if (phi2 == inst_en)
+         report_info("INSTRUCTION_SAVE", $sformatf("#%p WRITE INSTRUCTION CORRECT [0x%x] = 0x%x", count, phi2, inst_en));
+      else 
+         report_error("INSTRUCTION_SAVE", $sformatf("#%p WRITE INSTRUCTION FAILED  [0x%x] = 0x%x (expected: 0x%x 0x%x)", count , phi2, inst_en, 1,1));
+   endtask 
+   
+ /*end Alex's block*/
+
+ 
+ 
    
    task verify_wmem(longint count, int unsigned addr, int unsigned data);
       int unsigned rdata;

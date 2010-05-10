@@ -82,7 +82,7 @@ module tb_coverage (
 	  /* begin Ricardo's block*/
 	covergroup cg_Mux @(posedge cpu_ref_intf.clk);
 	  cp_Mux: coverpoint mux_sel'(cpu_ref_intf.muxRegSel) {
-         bins sta_addr_mode[] = {SEL_MUX_A, SEL_MUX_X, SEL_MUX_Y, SEL_MUX_SP};
+         bins mux_addr_mode[] = {SEL_MUX_A, SEL_MUX_X, SEL_MUX_Y, SEL_MUX_SP};
          bins others          = default;
       }
 	  //
@@ -91,6 +91,17 @@ module tb_coverage (
      // cross_load: cross cp_Mux;
  endgroup
 	  /* end Ricardo's block*/
+	  
+	  /* begin Alex's block*/
+	covergroup cg_Save_Inst @(posedge cpu_ref_intf.clk);
+	  cp_Save_Inst: coverpoint opcode_t'(cpu_ref_intf.inst_reg) {
+         bins lda_addr_mode[] = {LDA_ZPAGE, LDA_ZPAGEX, LDA_INDX, LDA_INDY, LDA_ABS, LDA_ABSX, LDA_ABSY, LDA_IMM};
+         bins others          = default;
+      }
+ endgroup
+	  /* end Alex's block*/
+
+
 	
    /* begin Gilberto's block*/
    covergroup cg_logic_aritmetic @(posedge cpu_ref_intf.clk);
@@ -108,6 +119,7 @@ module tb_coverage (
 
    cg_logic_aritmetic cg_logic_aritmetic_int = new(); //Gil B.
    cg_Mux  cg_Mux_inst = new(); //ricardo
+   cg_Save_Inst cg_Save_Inst_inst =new(); //Alex
    cg_load  cg_load_inst = new();
    cg_store cg_store_inst = new();
 
