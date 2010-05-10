@@ -33,7 +33,7 @@ interface tb_cpu_if ();
    reg [7:0] fsm_current_state;
 
    reg [1:0] muxRegSel;
-   reg [1:0] muxOut;
+   reg [7:0] muxOut;
    reg [7:0] regAinternal;
    reg [7:0] regXinternal;
    reg [7:0] regYinternal;
