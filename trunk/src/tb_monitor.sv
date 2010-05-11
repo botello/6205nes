@@ -50,6 +50,7 @@ class tb_monitor extends component_base;
 		 monitor_inst_reg ();//Alex monitor
 		 monitor_reg_SP(); //GUS
 		 monitor_TXS();//GUS
+		 monitor_reg_x2();
       join
    endtask
 
@@ -318,6 +319,42 @@ class tb_monitor extends component_base;
    endtask
    
    /******************GUS::END************************/
+   
+    //**************David monitor y cheker**********************************************
+  virtual protected task monitor_reg_x2();
+      int unsigned registrox_antvalor;
+      int unsigned last_value = 'x;
+      longint count = 0;
+      longint bandera = 0;
+      
+      forever begin
+         @(posedge vi.clk); begin
+		       if (vi.opcode=='hE8 && count==0) 
+		         begin
+		           bandera=1;
+		           count=count+1;
+		           registrox_antvalor = vi.q_x_o_i;
+		          end
+      
+		       if (bandera == 1 && vi.q_x_o_i != registrox_antvalor && count==1) begin
+               last_value = vi.q_x_o_i;
+               count=0;
+               bandera=0;		               
+            fork verify_incregx(++count,registrox_antvalor, last_value); join_none
+              end
+        end
+    end
+   endtask
+   
+   task verify_incregx(longint count, int unsigned registro, int unsigned q_x_o_i);
+     if(q_x_o_i== registro + 1)
+       report_info("RegX INCX", $sformatf(" REG X incrementado anterior = %x, nuevo = %x ",registro, vi.q_x_o_i));
+     else 
+       report_info("RegX INCX", $sformatf(" Error No incrementado %x  %x", vi.q_x_o_i, registro));
+   endtask
+   
+ /////*************************end Davidmonitor y cheker****************************
+
 
  
    

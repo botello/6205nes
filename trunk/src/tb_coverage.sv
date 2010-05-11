@@ -79,7 +79,8 @@ module tb_coverage (
       AND_ABSX   = 'h3D,
       AND_ABSY   = 'h39,
       AND_INDX   = 'h21,
-      AND_INDY   = 'h31
+      AND_INDY   = 'h31,    
+      INCX_Implied = 'hE8
    } opcode_t;
 
    covergroup cg_store @(posedge cpu_ref_intf.clk);
@@ -187,6 +188,15 @@ module tb_coverage (
    endgroup
 /****************GUS*END*******************/
 
+////**********Covertura INCX David **************************
+   covergroup cg_Incx @(posedge cpu_ref_intf.clk);
+	  cp_Incx: coverpoint opcode_t'(cpu_ref_intf.opcode)
+	    {bins incx_addr_mode[]={INCX_Implied};
+	     bins others = default;
+	     }
+   endgroup
+////////********************************   
+
    cg_logic_aritmetic cg_logic_aritmetic_int = new(); //Gil B.
    cg_Mux  cg_Mux_inst = new(); //ricardo
    cg_Save_Inst cg_Save_Inst_inst =new(); //Alex
@@ -194,6 +204,7 @@ module tb_coverage (
    cg_load  cg_load_inst = new();
    cg_store cg_store_inst = new();
    cg_pressed_button cg_pressed_button_inst = new(); // Israel.
+   cg_Incx cg_Incx_inst = new();//David
 
  /*Cover point for interruption RST*/
    covergroup cg_rst_int @ (posedge cpu_ref_intf.b_rst);
