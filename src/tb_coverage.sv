@@ -114,7 +114,7 @@ module tb_coverage (
 	covergroup cg_Save_Inst @(posedge cpu_ref_intf.clk);
 	  cp_Save_Inst: coverpoint opcode_t'(cpu_ref_intf.inst_reg) {
          bins lda_addr_mode[] = {LDA_ZPAGE, LDA_ZPAGEX, LDA_INDX, LDA_INDY, LDA_ABS, LDA_ABSX, LDA_ABSY, LDA_IMM,AND_ZPAGE, AND_ZPAGEX, AND_INDX, 
-		                          AND_INDY, AND_ABS, AND_ABSX, AND_ABSY, AND_IMM};
+		                         AND_INDY, AND_ABS, AND_ABSX, AND_ABSY, AND_IMM,STA_ZPAGE, STA_ZPAGEX, STA_INDX, STA_INDY, STA_ABS, STA_ABSX, STA_ABSY};
          bins others          = default;
       }
  endgroup
