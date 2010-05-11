@@ -115,11 +115,19 @@ module tb_coverage (
       //
    endgroup
    /* end Gilberto's block*/
-
+/****************GUS*BEGIN*****************/
+  covergroup cg_TXS @(posedge cpu_ref_intf.clk);
+      cp_TXS: coverpoint cpu_ref_intf.opcode {
+         bins n_opcode    = {8'h9A};
+         bins others   = default;
+      }  
+   endgroup
+/****************GUS*END*******************/
 
    cg_logic_aritmetic cg_logic_aritmetic_int = new(); //Gil B.
    cg_Mux  cg_Mux_inst = new(); //ricardo
    cg_Save_Inst cg_Save_Inst_inst =new(); //Alex
+      cg_TXS  cg_TXS_inst = new(); //Gus
    cg_load  cg_load_inst = new();
    cg_store cg_store_inst = new();
 
