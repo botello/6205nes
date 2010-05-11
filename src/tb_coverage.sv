@@ -31,6 +31,16 @@ module tb_coverage (
       LDA_ABSY   = 'hB9,
       LDA_INDX   = 'hA1,
       LDA_INDY   = 'hB1,
+	  LDX_INM  	 = 'hA2,
+      LDX_ZPAGE  = 'hA6,
+      LDX_ABS	 = 'hAE,
+      LDX_ABSY	 = 'hBE,
+      LDX_ZPAGEY = 'hB6,
+	  LDY_INM	 = 'hA0,
+      LDY_ZPAGE	 = 'hA4,
+      LDY_ZPAGEX = 'hB4,
+      LDY_ABS	 = 'hAC,	
+      LDY_ABSX	 = 'hBC,
       STA_ZPAGE  = 'h85,
       STA_ZPAGEX = 'h95,
       STA_INDX   = 'h81,
@@ -38,6 +48,9 @@ module tb_coverage (
       STA_ABS    = 'h8D,
       STA_ABSX   = 'h9D,
       STA_ABSY   = 'h99,
+	  STX_ZPAGE	 = 'h86,
+      STX_ABS	 = 'h8E,    
+      STX_ZPAGEY = 'h96,
       AND_IMM    = 'h29,
       AND_ZPAGE  = 'h25,
       AND_ZPAGEX = 'h35,
@@ -113,8 +126,10 @@ module tb_coverage (
 	  /* begin Alex's block*/
 	covergroup cg_Save_Inst @(posedge cpu_ref_intf.clk);
 	  cp_Save_Inst: coverpoint opcode_t'(cpu_ref_intf.inst_reg) {
-         bins lda_addr_mode[] = {LDA_ZPAGE, LDA_ZPAGEX, LDA_INDX, LDA_INDY, LDA_ABS, LDA_ABSX, LDA_ABSY, LDA_IMM,AND_ZPAGE, AND_ZPAGEX, AND_INDX, 
-		                         AND_INDY, AND_ABS, AND_ABSX, AND_ABSY, AND_IMM,STA_ZPAGE, STA_ZPAGEX, STA_INDX, STA_INDY, STA_ABS, STA_ABSX, STA_ABSY};
+         bins lda_addr_mode[] = {LDA_ZPAGE, LDA_ZPAGEX, LDA_INDX, LDA_INDY, LDA_ABS, LDA_ABSX, LDA_ABSY, LDA_IMM,LDX_INM,LDX_ZPAGE,LDX_ABS,LDX_ABSY,
+		                         LDX_ZPAGEY,LDY_INM,LDY_ZPAGE,LDY_ZPAGEX,LDY_ABS,LDY_ABSX,AND_ZPAGE, AND_ZPAGEX, AND_INDX, AND_INDY, AND_ABS,
+								 AND_ABSX, AND_ABSY, AND_IMM,STA_ZPAGE, STA_ZPAGEX, STA_INDX, STA_INDY, STA_ABS, STA_ABSX, STA_ABSY,STX_ZPAGE,
+								 STX_ABS,STX_ZPAGEY};
          bins others          = default;
       }
  endgroup
