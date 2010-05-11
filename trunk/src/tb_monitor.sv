@@ -42,6 +42,7 @@ class tb_monitor extends component_base;
          monitor_reg_acc();
          monitor_reg_x();
          monitor_reg_y();
+		 monitor_press_control(); // Israel Code.
 		 monitor_mux_reg(); //ricardo monitor
 		 monitor_mux_reg_out(); // ricardo monitor
 		 monitor_inst_en ();//Alex monitor
@@ -115,6 +116,35 @@ class tb_monitor extends component_base;
          end
       end
    endtask
+   //###############################
+   // Israel: Code.
+   //###############################
+   virtual protected task monitor_press_control();
+	  int temp = 0;
+	  int pressed_button = 0;
+      forever begin
+         // Assuming reading from memory is instantaneous.
+         @(posedge vi.clk);
+         if (enable_rmem) begin
+            if ((vi.ren) && (vi.cpu_addr_out == ADDR_JOYPAD1)) begin
+			   fork
+			      pressed_button = vi.cpu_data_in & 'h1;
+			      repeat(7) begin
+				     @(posedge vi.clk);
+					 pressed_button = pressed_button <<< 1;
+					 temp = vi.cpu_data_in & 'h1;
+				     pressed_button = pressed_button + temp;
+			      end
+			      if ((pressed_button <= 'h9) && (pressed_button >= 'h1))
+			         report_info("Button", $sformatf("Pressed = 0x%x", pressed_button));
+			      else
+			        report_info("Button", $sformatf("Pressed  Invalid = 0x%x", pressed_button));
+				join
+            end
+         end
+      end
+   endtask
+   //###############################
 
    virtual protected task monitor_wmem();
       longint count = 0;
