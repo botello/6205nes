@@ -51,6 +51,27 @@ module tb_coverage (
 	  STX_ZPAGE	 = 'h86,
       STX_ABS	 = 'h8E,    
       STX_ZPAGEY = 'h96,
+	  STY_ZPAGE  = 'h84,
+      STY_ZPAGEX = 'h94,
+      STY_ABS    = 'h8C,
+	  BIT_ZPAGE  = 'h24,
+      BIT_ABS    = 'h2C,
+	  ORA_INM	 = 'h09,
+	  ORA_ZPAGE  = 'h05,
+	  ORA_ZPAGEX = 'h15,
+	  ORA_ABS    = 'h0D,
+	  ORA_ABSX   = 'h1D,
+	  ORA_ABSY   = 'h19,
+      ORA_INDX   = 'h01,
+	  ORA_INDY   = 'h11,
+	  EOR_INM	 = 'h49,
+      EOR_ZPAGE  = 'h45,
+      EOR_ZPAGEX = 'h55,
+      EOR_ABS    = 'h4D,
+      EOR_ABSX   = 'h5D,
+      EOR_ABSY   = 'h59,
+      E0R_INDX   = 'h41,
+      EOR_INDY   = 'h51,
       AND_IMM    = 'h29,
       AND_ZPAGE  = 'h25,
       AND_ZPAGEX = 'h35,
@@ -129,7 +150,8 @@ module tb_coverage (
          bins lda_addr_mode[] = {LDA_ZPAGE, LDA_ZPAGEX, LDA_INDX, LDA_INDY, LDA_ABS, LDA_ABSX, LDA_ABSY, LDA_IMM,LDX_INM,LDX_ZPAGE,LDX_ABS,LDX_ABSY,
 		                         LDX_ZPAGEY,LDY_INM,LDY_ZPAGE,LDY_ZPAGEX,LDY_ABS,LDY_ABSX,AND_ZPAGE, AND_ZPAGEX, AND_INDX, AND_INDY, AND_ABS,
 								 AND_ABSX, AND_ABSY, AND_IMM,STA_ZPAGE, STA_ZPAGEX, STA_INDX, STA_INDY, STA_ABS, STA_ABSX, STA_ABSY,STX_ZPAGE,
-								 STX_ABS,STX_ZPAGEY};
+								 STX_ABS,STX_ZPAGEY,STY_ZPAGE,STY_ZPAGEX,STY_ABS,ORA_INM,ORA_ZPAGE,ORA_ZPAGEX,ORA_ABS,ORA_ABSX,ORA_ABSY,ORA_INDX,
+								 ORA_INDY,EOR_INM,EOR_ZPAGE,EOR_ZPAGEX,EOR_ABS,EOR_ABSX,EOR_ABSY,E0R_INDX,EOR_INDY,BIT_ZPAGE,BIT_ABS};
          bins others          = default;
       }
  endgroup
