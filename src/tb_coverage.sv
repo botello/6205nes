@@ -63,6 +63,24 @@ module tb_coverage (
       cross_store: cross cp_store, cp_sta_addr_mode;
    endgroup
 
+   //###########################################
+   // Israel Code.
+   //###########################################
+   covergroup cg_pressed_button @(posedge cpu_ref_intf.clk);
+      cp_mem_read_en: coverpoint cpu_ref_intf.ren {
+         bins n_ren    = {1'b1};
+         bins others   = default;
+      }
+	  
+	  cp_joy_pad1: coverpoint cpu_ref_intf.cpu_addr_out {
+         bins joy_pad1_addr    = {16'h4016};
+         bins others   = default;
+      }
+	  
+	  cross_joy_pad1: cross cp_mem_read_en, cp_joy_pad1;
+	endgroup  
+   //###########################################
+   
    covergroup cg_load @(posedge cpu_ref_intf.clk);
       cp_load: coverpoint cpu_ref_intf.ren {
          bins n_ren    = {1'b1};
@@ -130,6 +148,7 @@ module tb_coverage (
       cg_TXS  cg_TXS_inst = new(); //Gus
    cg_load  cg_load_inst = new();
    cg_store cg_store_inst = new();
+   cg_pressed_button cg_pressed_button_inst = new(); // Israel.
 
  /*Cover point for interruption RST*/
    covergroup cg_rst_int @ (posedge cpu_ref_intf.b_rst);
