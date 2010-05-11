@@ -73,7 +73,7 @@ module tb_top();
 	  cpu_ref_intf.inst_en = cpu_ref_top.refmodel.U_4.rdy_i; //Alex
 	  cpu_ref_intf.phi2 = cpu_ref_top.refmodel.U_4.sync_o_cld; //Alex
 	  cpu_ref_intf.inst_reg = cpu_ref_top.refmodel.U_4.zw_REG_OP; //Aex
-
+	  cpu_ref_intf.result_low1_o_i=cpu_ref_top.refmodel.U_1.result_low1_o_i;//Gus	
 	  
 	  //
       // TODO: Assign actual register and signals from DUV to interface.

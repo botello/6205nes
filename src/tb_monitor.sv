@@ -17,7 +17,9 @@ class tb_monitor extends component_base;
    bit enable_mux_reg_Out = 1; //ricardo
     bit enable_inst_en = 1;//Alex
    bit enable_phi2 = 1; //Alex
-   bit enable_inst_reg = 1;//Alex
+   bit enable_inst_reg = 1;//Alex   
+   bit enable_reg_sp   = 1;//gus
+   bit enable_TXS	  = 1;//gus
 
    function new(string name = "tb_monitor", component_base patent);
       this.name = name;
@@ -45,7 +47,8 @@ class tb_monitor extends component_base;
 		 monitor_inst_en ();//Alex monitor
 		 monitor_phi2 ();//Alex monitor
 		 monitor_inst_reg ();//Alex monitor
-
+		 monitor_reg_SP(); //GUS
+		 monitor_TXS();//GUS
       join
    endtask
 
@@ -232,7 +235,60 @@ class tb_monitor extends component_base;
    
  /*end Alex's block*/
 
- 
+ /******************GUS::BEGIN**********************/
+   virtual protected task monitor_reg_SP();
+      int unsigned last_value;
+      longint count = 0;
+      last_value = 'x;
+      forever begin
+         @(posedge vi.clk);
+         if (enable_reg_sp) begin
+            if (vi.result_low1_o_i != last_value) begin
+               last_value = vi.result_low1_o_i;
+               report_info("CPU", $sformatf("#%p REG WRITE SP = 0x%x", ++count, vi.result_low1_o_i));			   
+            end
+         end
+      end
+   endtask
+   
+   virtual protected task monitor_TXS();
+      longint count = 0;
+	  bit r=0;
+      forever begin
+         @(posedge vi.clk);		
+		 r=~r;		 
+         if (enable_TXS==1 && r==1) begin
+              fork verify_TXS(++count, vi.cpu_addr_out, vi.cpu_data_out); join_none
+         end
+      end
+   endtask   
+   
+   task verify_TXS(longint count, int unsigned addr, int unsigned data);
+      int unsigned rdata;
+	 
+	  @(posedge vi.clk);	 
+	  case (addr[15:13])
+         ADDR_15_13_RAM   : rdata = vi.mem_ram_r  [addr[10:0]];
+         ADDR_15_13_SRAM  : rdata = vi.mem_sram_r [addr[12:0]];
+         ADDR_15_13_IOREG : rdata = vi.mem_ioreg_r[addr[02:0]];
+         ADDR_15_13_OTHER : rdata = 'x;
+      endcase	
+	 if (vi.opcode==8'h9A)	 
+	begin
+      if (vi.result_low1_o_i == vi.q_x_o_i)
+	  begin
+		 report_info("TXS", $sformatf("#%p TXS_OK %s [0x%x] = 0x%x ", count, decode_addr(addr), addr, data));		
+	  end
+      else
+	  begin
+         report_error("TXS", $sformatf("#%p TXS_FAILED %s [0x%x] = 0x%x (expected: 0x%x) ", count, decode_addr(addr), addr, rdata, data));		 
+	  end
+	end	
+	
+   endtask
+   
+   /******************GUS::END************************/
+
  
    
    task verify_wmem(longint count, int unsigned addr, int unsigned data);
