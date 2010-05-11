@@ -131,6 +131,16 @@ module tb_coverage (
    cg_load  cg_load_inst = new();
    cg_store cg_store_inst = new();
 
+ /*Cover point for interruption RST*/
+   covergroup cg_rst_int @ (posedge cpu_ref_intf.b_rst);
+     cp_rst_int: coverpoint cpu_ref_intf.b_rst{
+        bins p_b_rst = {1'b1};
+        bins others = default;
+     }
+   endgroup
+ /***********       Covert for Interruptions      *******************/
+  cg_rst_int cg_rst_int_inst = new();
+    
 endmodule
 
 `endif
