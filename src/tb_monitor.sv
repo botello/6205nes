@@ -50,7 +50,8 @@ class tb_monitor extends component_base;
 		 monitor_inst_reg ();//Alex monitor
 		 monitor_reg_SP(); //GUS
 		 monitor_TXS();//GUS
-		 monitor_reg_x2();
+		 monitor_reg_x2();//DAVID
+		 monitor_logic_aritmetic();//Gil B. monitor
       join
    endtask
 
@@ -356,8 +357,57 @@ class tb_monitor extends component_base;
  /////*************************end Davidmonitor y cheker****************************
 
 
+
+/******************** begin Gil B. block ***************
+*******************************************************/
+    virtual protected task monitor_logic_aritmetic();
+      logic [7:0] last_value_acc;
+      longint count = 0;
+      int bandera = 0;
+      forever begin
+         @(posedge vi.clk);
+         if (enable_rmem & enable_reg_acc & enable_phi2) begin
+            if (vi.phi2 & vi.opcode == 8'h29 ) begin
+              bandera = 1;
+              last_value_acc = vi.q_a_o_i;
+            end
+            else 
+              if (bandera & vi.phi2)
+                begin
+                  bandera = 0;
+                  fork verify_logic_aritmetic (++count, vi.cpu_data_out, vi.q_a_o_i, last_value_acc); join_none 
+		            end
+         end
+      end
+   endtask
+  
+  task verify_logic_aritmetic (longint count, int unsigned data, int unsigned acc, int unsigned last_acc);
+      @(posedge vi.clk);  
+        if (acc == (last_acc & data))
+          report_info("AND IMM", $sformatf("#%p OPERACION  0x%x = 0x%x & %x", count, acc, last_acc,  data));
+        else
+          report_info("AND IMM", $sformatf("#%p OPERACION ERRONEA 0x%x != 0x%x & %x ", count, acc, last_acc, data ));
+  endtask
+  
+  task verify_rmem(longint count, int unsigned addr, int unsigned data);
+      int unsigned rdata;
+      @(posedge vi.clk);
+      case (addr[15:13])
+         ADDR_15_13_RAM   : rdata = vi.mem_ram_r  [addr[10:0]];
+         ADDR_15_13_SRAM  : rdata = vi.mem_sram_r [addr[12:0]];
+         ADDR_15_13_IOREG : rdata = vi.mem_ioreg_r[addr[02:0]];
+         ADDR_15_13_OTHER : rdata = 'x;
+      endcase
+      if (rdata == data)
+         report_info("MEM", $sformatf("#%p READ %s [0x%x] = 0x%x", count, decode_addr(addr), addr, data));
+      else 
+         report_error("MEM", $sformatf("#%p READ FAILED %s [0x%x] = 0x%x (expected: 0x%x)", count, decode_addr(addr), addr, rdata, data));
+   endtask
+
+/******************** end Gil B. block *****************
+*******************************************************/
  
-   
+
    task verify_wmem(longint count, int unsigned addr, int unsigned data);
       int unsigned rdata;
       @(posedge vi.clk);
