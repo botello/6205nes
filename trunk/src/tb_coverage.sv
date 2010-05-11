@@ -39,7 +39,7 @@ module tb_coverage (
 	  LDY_INM	 = 'hA0,
       LDY_ZPAGE	 = 'hA4,
       LDY_ZPAGEX = 'hB4,
-      LDY_ABS	 = 'hAC,	
+      LDY_ABS	 = 'hAC,
       LDY_ABSX	 = 'hBC,
       STA_ZPAGE  = 'h85,
       STA_ZPAGEX = 'h95,
@@ -49,7 +49,7 @@ module tb_coverage (
       STA_ABSX   = 'h9D,
       STA_ABSY   = 'h99,
 	  STX_ZPAGE	 = 'h86,
-      STX_ABS	 = 'h8E,    
+      STX_ABS	 = 'h8E,
       STX_ZPAGEY = 'h96,
 	  STY_ZPAGE  = 'h84,
       STY_ZPAGEX = 'h94,
@@ -88,13 +88,20 @@ module tb_coverage (
          bins others   = default;
       }
       cp_sta_addr_mode: coverpoint opcode_t'(cpu_ref_intf.opcode) {
-         bins sta_addr_mode[] = {STA_ZPAGE, STA_ZPAGEX, STA_INDX, STA_INDY, STA_ABS, STA_ABSX, STA_ABSY};
+         bins sta_addr_mode[] ={STA_ZPAGE, STA_ZPAGEX, STA_INDX, STA_INDY, STA_ABS, STA_ABSX, STA_ABSY};
          bins others          = default;
       }
-      //
-      // TODO: add coverpoints for other store operations.
-      //
-      cross_store: cross cp_store, cp_sta_addr_mode;
+
+      cp_stx_addr_mode: coverpoint opcode_t'(cpu_ref_intf.opcode) {
+         bins stx_addr_mode[] ={STX_ZPAGE, STX_ABS, STX_ZPAGEY};
+         bins others          = default;
+      }
+      cp_sty_addr_mode: coverpoint opcode_t'(cpu_ref_intf.opcode) {
+         bins sty_addr_mode[] ={STY_ZPAGE, STY_ABS, STY_ZPAGEX};
+         bins others          = default;
+      }
+
+      cross_store: cross cp_store, cp_sta_addr_mode, cp_stx_addr_mode, cp_sty_addr_mode;
    endgroup
 
    //###########################################
