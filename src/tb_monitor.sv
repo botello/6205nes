@@ -37,21 +37,21 @@ class tb_monitor extends component_base;
    virtual task run();
       super.run();
       fork
-         monitor_rmem();
-         monitor_wmem();
-         monitor_reg_acc();
-         monitor_reg_x();
-         monitor_reg_y();
-		 monitor_press_control(); // Israel Code.
-		 monitor_mux_reg(); //ricardo monitor
-		 monitor_mux_reg_out(); // ricardo monitor
-		 monitor_inst_en ();//Alex monitor
-		 monitor_phi2 ();//Alex monitor
-		 monitor_inst_reg ();//Alex monitor
-		 monitor_reg_SP(); //GUS
-		 monitor_TXS();//GUS
-		 monitor_reg_x2();//DAVID
-		 monitor_logic_aritmetic();//Gil B. monitor
+        monitor_rmem();
+        monitor_wmem();
+        monitor_reg_acc();
+        monitor_reg_x();
+        monitor_reg_y();
+		    monitor_press_control(); // Israel Code.
+		    monitor_mux_reg(); //ricardo monitor
+		    monitor_mux_reg_out(); // ricardo monitor
+		    monitor_inst_en ();//Alex monitor
+		    monitor_phi2 ();//Alex monitor
+		    monitor_inst_reg ();//Alex monitor
+		    monitor_reg_SP(); //GUS
+		    monitor_TXS();//GUS
+		    monitor_reg_x2();//DAVID
+		    monitor_logic_aritmetic();//Gil B. monitor
       join
    endtask
 
@@ -367,7 +367,7 @@ class tb_monitor extends component_base;
       forever begin
          @(posedge vi.clk);
          if (enable_rmem & enable_reg_acc & enable_phi2) begin
-            if (vi.phi2 & vi.opcode == 8'h29 ) begin
+            if (vi.opcode == 8'h29 && vi.phi2==0) begin
               bandera = 1;
               last_value_acc = vi.q_a_o_i;
             end
@@ -381,13 +381,15 @@ class tb_monitor extends component_base;
       end
    endtask
   
-  task verify_logic_aritmetic (longint count, int unsigned data, int unsigned acc, int unsigned last_acc);
+  
+  task verify_logic_aritmetic (longint count, int unsigned data, int unsigned acc, int unsigned last_value_acc);
       @(posedge vi.clk);  
-        if (acc == (last_acc & data))
-          report_info("AND IMM", $sformatf("#%p OPERACION  0x%x = 0x%x & %x", count, acc, last_acc,  data));
+        if (acc == (last_value_acc & data))
+          report_info("AND IMM", $sformatf("#%p OPERACION  0x%x = 0x%x & %x", count, acc, last_value_acc,  data));
         else
-          report_info("AND IMM", $sformatf("#%p OPERACION ERRONEA 0x%x != 0x%x & %x ", count, acc, last_acc, data ));
+          report_info("AND IMM", $sformatf("#%p OPERACION ERRONEA 0x%x != 0x%x & %x ", count, acc, last_value_acc, data ));
   endtask
+  
   
   task verify_rmem(longint count, int unsigned addr, int unsigned data);
       int unsigned rdata;
@@ -406,6 +408,7 @@ class tb_monitor extends component_base;
 
 /******************** end Gil B. block *****************
 *******************************************************/
+
  
 
    task verify_wmem(longint count, int unsigned addr, int unsigned data);
