@@ -10,6 +10,7 @@ class tb_monitor extends component_base;
    protected virtual tb_cpu_if vi;
    bit enable_rmem    = 1;
    bit enable_wmem    = 1;
+   bit enable_b_rst   = 1;
    bit enable_reg_acc = 1;
    bit enable_reg_x   = 1;
    bit enable_reg_y   = 1;
@@ -39,6 +40,7 @@ class tb_monitor extends component_base;
       fork
         monitor_rmem();
         monitor_wmem();
+        monitor_b_rst();
         monitor_reg_acc();
         monitor_reg_x();
         monitor_reg_y();
@@ -408,7 +410,30 @@ class tb_monitor extends component_base;
 
 /******************** end Gil B. block *****************
 *******************************************************/
-
+//gil
+   virtual protected task monitor_b_rst();
+      int unsigned last_value;
+      longint count = 0;
+      last_value = '0;
+      forever begin
+         @(posedge vi.clk);
+         if (enable_b_rst) begin
+            if (vi.b_rst != last_value) begin
+               last_value = vi.b_rst;
+               report_info("B_RST", $sformatf("#%p B_RST= 0x%x", ++count, vi.b_rst));
+               fork verify_interruption_rst( count, vi.b_rst); join_none
+			 end
+         end
+      end
+   endtask
+   
+   task verify_interruption_rst(longint count, longint b_rst);
+    @(posedge vi.clk);
+      if ( b_rst == vi.b_rst)
+         report_info("RESET_COMPLET", $sformatf("#%p RESET INTERRUPTION CORRECT 0x%x", count, b_rst));
+      else 
+         report_error("RESET_SAVE", $sformatf("#%p RESET INTERRUPTION FAILED  [0x%x] = 0x%x (expected: 0x%x 0x%x)", count , b_rst, vi.b_rst, 1,1));
+   endtask 
  
 
    task verify_wmem(longint count, int unsigned addr, int unsigned data);
