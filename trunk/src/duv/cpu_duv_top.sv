@@ -31,14 +31,16 @@ module cpu_duv_top(tb_cpu_if.cpu intf);
    );
 
    always_comb begin : signal_assign_proc
+      nes_intf.clk   = intf.clk;
+      nes_intf.b_rst = intf.b_rst;
       nes_intf.b_nmi = intf.b_nmi;
       nes_intf.b_irq = intf.b_irq;
-      intf.syn_clk = nes_intf.phi2;
-      intf.ren =  nes_intf.r_bw;
-      intf.wen = ~nes_intf.r_bw;
+      intf.syn_clk   = nes_intf.phi2;
+      intf.ren       =  nes_intf.r_bw;
+      intf.wen       = ~nes_intf.r_bw;
       intf.cpu_addr_out = nes_intf.addr;
-      //if (intf.ren) nes_intf.data = intf.cpu_data_in;
-      if (intf.wen) intf.cpu_data_out = nes_intf.data;
+      nes_intf.data_in  = (intf.ren) ? intf.cpu_data_in  : 'hZ;
+      intf.cpu_data_out = (intf.wen) ? nes_intf.data_out : 'hZ;
    end
 
 endmodule

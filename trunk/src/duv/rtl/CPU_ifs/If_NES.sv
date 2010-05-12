@@ -35,6 +35,12 @@ interface nes_if #(
     logic [Ad_sz-1:0] addr;   // Address of memory
  	  wire  [Dt_sz-1:0] data;   // Data bus
 
+ 	  logic [Dt_sz-1:0] data_in;   // Data bus
+ 	  logic  [Dt_sz-1:0] data_out;   // Data bus
+   
+
+   assign data = (r_bw)  ? data_in : 'hz;
+   assign data_out = (~r_bw) ? data    : 'hz;
 
   modport cpu (
     // CPU Inputs

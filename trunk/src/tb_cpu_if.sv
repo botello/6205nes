@@ -18,7 +18,6 @@ interface tb_cpu_if ();
    logic        wen;
    logic        rdy;
    logic        so;
-   
 
    logic [ 7:0] q_a_o_i;
    logic [ 7:0] q_x_o_i;
