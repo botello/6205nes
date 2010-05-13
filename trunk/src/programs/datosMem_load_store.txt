@@ -1,0 +1,140 @@
+A2	//LDX IMM
+30	//precarga en el regX un 30
+EA	//no operation
+
+A0	//LDY IMM
+40	//precarga en el regY un 40
+EA	//no operation
+
+A9	//LDA IMM
+50	//precargar en el acc un 50
+EA	//no operation
+
+E8	//INX
+EA	//no operation
+
+C8	//INY
+EA	//no operation
+
+86	//STX Z,page
+02	//Addr ZP
+EA	//no operation
+
+84	//STY Z,page
+03	//Addr ZP
+EA	//no operation
+
+85	//STA Z,page
+04	//Addr ZP
+EA	//no operation
+
+A6	//LDX Z.page
+04	//precarga lo de la memoria 04
+EA	//no operation
+
+A4	//LDY Z.page
+02	//precarga lo de la memoria 02
+EA	//no operation
+
+A5	//LDA Z.page
+03	//precarga lo de la memoria 03
+EA	//no operation
+
+E8	//INX
+EA	//no operation
+
+C8	//INY
+EA	//no operation
+
+8E	//STX ABS
+05	//Addr low
+00	//Addr high
+
+EA	//no operation
+
+8C	//STY ABS
+06	//Addr low
+00	//Addr high
+
+EA	//no operation
+
+8D	//STA ABS
+07	//Addr low
+00	//Addr high
+
+EA	//no operation
+
+AE	//LDX ABS
+07	//Addr low
+00	//Addr high
+EA	//no operation
+
+AC	//LDY ABS
+05	//Addr low
+00	//Addr high
+EA	//no operation
+
+AD	//LDA ABS
+06	//Addr low
+00	//Addr high
+EA	//no operation
+
+BD	//LDA ABS,X
+06	//Addr low
+00	//Addr high
+EA	//no operation
+
+9D	//STA ABS,X
+01	//Addr low
+00	//Addr high
+EA	//no operation
+
+B9	//LDA ABS,Y
+03	//Addr low
+00	//Addr high
+EA	//no operation
+
+99	//STA ABS,Y
+01	//Addr low
+00	//Addr high
+EA	//no operation
+
+A1	//LDA IND,X
+48	//Addr ZP
+EA	//no operation
+
+81	//STA IND,X
+01	//Addr ZP
+EA	//no operation
+
+B1	//LDA IND,Y
+68	//Addr ZP
+EA	//no operation
+
+91	//STA IND,Y
+01	//Addr ZP
+EA	//no operation
+
+B5	//LDA Z,page,X
+02	//Addr ZP
+EA	//no operation
+
+95	//STA Z,page,X
+01	//Addr ZP
+EA	//no operation
+	
+96	//STX Z,page,Y
+01	//Addr ZP
+EA	//no operation
+
+94	//STY Z,page,X
+01	//Addr ZP
+EA	//no operation
+
+B6	//LDX Z,page,Y
+30	//precarga en el regX un 30
+EA	//no operation
+
+B4	//LDY Z,page,X
+40	//precarga en el regY un 40
+EA	//no operation

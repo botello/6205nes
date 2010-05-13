@@ -1,0 +1,198 @@
+A9	//LDA IMM
+50	//precargar en el acc un 50
+EA	//no operation
+
+29	//AND IMM
+02	//dato
+EA	//no operation
+
+09	//OR IMM
+15	//dato
+EA	//no operation
+
+49	//EOR IMM
+48	//dato
+EA	//no operation
+
+// Zero page
+85	//STA Z,page
+01	//Addr ZP
+EA	//no operation
+
+A9	//LDA IMM
+15	//precargar en el acc un 15
+EA	//no operation
+
+25	//AND Z,page
+01	//Addr ZP
+EA	//no operation
+
+A9	//LDA IMM
+25	//precargar en el acc un 25
+EA	//no operation
+
+05	//OR Z,page
+01	//Addr ZP
+EA	//no operation
+
+45	//EOR Z,page
+01	//Addr ZP
+EA	//no operation
+
+//zero page, X
+95	//STA Z,page,X
+01	//Addr ZP
+EA	//no operation
+
+A9	//LDA IMM
+50	//precargar en el acc un 50
+EA	//no operation
+
+35	//AND Z,page,x
+01	//Addr ZP
+EA	//no operation
+
+15	//OR Z,page,x
+01	//Addr ZP
+EA	//no operation
+
+55	//EOR Z,page,x
+01	//Addr ZP
+EA	//no operation
+
+//ABS
+A9	//LDA IMM
+33	//precargar en el acc un 33
+EA	//no operation
+
+8D	//STA ABS
+01	//Addr low
+00	//Addr high
+EA	//no operation
+
+A9	//LDA IMM
+68	//precargar en el acc un 68
+EA	//no operation
+
+2D	//AND ABS
+01	//Addr low
+00	//Addr high
+EA	//no operation
+
+0D	//OR ABS
+01	//Addr low
+00	//Addr high
+EA	//no operation
+
+4D	//EOR ABS
+01	//Addr low
+00	//Addr high
+EA	//no operation
+
+//ABS,X
+A9	//LDA IMM
+68	//precargar en el acc un 68
+EA	//no operation
+
+9D	//STA ABS,X
+01	//Addr low
+00	//Addr high
+EA	//no operation
+
+A9	//LDA IMM
+48	//precargar en el acc un 48
+EA	//no operation
+
+3D	//AND ABS,X
+01	//Addr low
+00	//Addr high
+EA	//no operation
+
+1D	//OR ABS,X
+01	//Addr low
+00	//Addr high
+EA	//no operation
+
+5D	//EOR ABS,X
+01	//Addr low
+00	//Addr high
+EA	//no operation
+
+//ABS,Y
+A9	//LDA IMM
+08	//precargar en el acc un 08
+EA	//no operation
+
+99	//STA ABS,Y
+01	//Addr low
+00	//Addr high
+EA	//no operation
+
+A9	//LDA IMM
+68	//precargar en el acc un 68
+EA	//no operation
+
+39	//AND ABS,Y
+01	//Addr low
+00	//Addr high
+EA	//no operation
+
+19	//OR ABS,Y
+01	//Addr low
+00	//Addr high
+EA	//no operation
+
+59	//EOR ABS,Y
+01	//Addr low
+00	//Addr high
+EA	//no operation
+
+//IND,X
+A9	//LDA IMM
+48	//precargar en el acc un 48
+EA	//no operation
+
+81	//STA IND,X
+01	//Addr ZP
+EA	//no operation
+
+A9	//LDA IMM
+78	//precargar en el acc un 78
+EA	//no operation
+
+21	//AND IND,X
+01	//Addr ZP
+EA	//no operation
+
+19	//OR IND,X
+01	//Addr ZP
+EA	//no operation
+
+59	//EOR IND,X
+01	//Addr ZP
+EA	//no operation
+
+//IND,Y
+A9	//LDA IMM
+68	//precargar en el acc un 68
+EA	//no operation
+
+91	//STA IND,Y
+01	//Addr ZP
+EA	//no operation
+
+A9	//LDA IMM
+78	//precargar en el acc un 78
+EA	//no operation
+
+31	//AND IND,Y
+01	//Addr ZP
+EA	//no operation
+
+11	//OR IND,Y
+01	//Addr ZP
+EA	//no operation
+
+51	//EOR IND,Y
+01	//Addr ZP
+EA	//no operation
