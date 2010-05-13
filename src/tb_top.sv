@@ -74,7 +74,10 @@ module tb_top();
 	  cpu_ref_intf.phi2 = cpu_ref_top.refmodel.U_4.sync_o_cld; //Alex
 	  cpu_ref_intf.inst_reg = cpu_ref_top.refmodel.U_4.zw_REG_OP; //Aex
 	  cpu_ref_intf.result_low1_o_i=cpu_ref_top.refmodel.U_1.result_low1_o_i;//Gus	
-	  
+      cpu_ref_intf.load_PC= cpu_ref_top.refmodel.U_0.ld_pc_i; //Velen
+      cpu_ref_intf.adr_PC= cpu_ref_top.refmodel.U_0.adr_pc_o; //Velen
+      cpu_ref_intf.adr_nxt_PC = cpu_ref_top.refmodel.U_0.adr_nxt_pc_o; //Velen
+			
 	  //
       // TODO: Assign actual register and signals from DUV to interface.
       //
