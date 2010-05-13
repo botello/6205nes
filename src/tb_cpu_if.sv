@@ -42,6 +42,9 @@ interface tb_cpu_if ();
    reg       phi2;//Alex
    reg       inst_en;//Alex
    
+   reg       load_PC;
+   reg [15:0]adr_PC;
+   reg [15:0]adr_nxt_PC;
    
    modport cpu (
       input  clk,
