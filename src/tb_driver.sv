@@ -31,7 +31,9 @@ class tb_driver extends component_base;
       init_signals();
 
       drive_rst(1, 2, 6);
-
+      
+      drive_nmi(150, 4, 1); //Gil
+      
       repeat (n_items) begin
          @(posedge vi.clk);
          inbox.get(req);
@@ -63,14 +65,17 @@ class tb_driver extends component_base;
       rsp = new();
       rsp.id = req.id;
    endtask
+    
+    //gil
+   protected task drive_nmi(int unsigned n_wait_before, int unsigned n_nmi, int unsigned n_wait_after);
+      vi.b_nmi = 'h1;
+      repeat (n_wait_before) @(posedge vi.clk);
+      vi.b_nmi = 'h0;
+      repeat (n_nmi) @(posedge vi.clk);
+      vi.b_nmi = 'h1;
+      repeat (n_wait_after) @(posedge vi.clk);
+    endtask
 
-   task drive_nmi(int unsigned n_cycles);
-      vi.b_nmi = 0;
-      repeat (n_cycles) begin
-         @(posedge vi.clk);
-      end
-      vi.b_nmi = 1;
-   endtask
 
    virtual task init_signals();
       vi.b_rst = 'h1;
