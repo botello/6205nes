@@ -21,6 +21,7 @@ class tb_monitor extends component_base;
    bit enable_inst_reg = 1;//Alex   
    bit enable_reg_sp   = 1;//gus
    bit enable_TXS	  = 1;//gus
+   bit enable_cpu_addr_out = 1; //Rst_Interrupt
 
    function new(string name = "tb_monitor", component_base patent);
       this.name = name;
@@ -54,6 +55,7 @@ class tb_monitor extends component_base;
 		    monitor_TXS();//GUS
 		    monitor_reg_x2();//DAVID
 		    monitor_logic_aritmetic();//Gil B. monitor
+		    monitor_cpu_addr_out(); //RST interruption
       join
    endtask
 
@@ -258,6 +260,29 @@ class tb_monitor extends component_base;
       end
    endtask
    
+   /*Rst Interruption monitor*/
+   virtual protected task monitor_cpu_addr_out();
+       int count = 0;
+       longint inc = 0;
+       forever begin
+         @( negedge vi.b_rst or vi.clk)
+         if(!vi.b_rst) begin
+           count = 0;
+         end
+         
+         else
+           if(enable_cpu_addr_out) begin
+             count = count + 1;
+             if(count == 11) begin
+               inc= inc +1;
+               fork verify_cpu_address_rst_int(inc); join_none
+             end
+           end
+         end
+        
+   endtask
+   
+   
    
    task verify_Save_instruction(longint count, bit phi2, bit inst_en);
     @(posedge vi.clk);
@@ -360,6 +385,8 @@ class tb_monitor extends component_base;
 
 
 
+
+
 /******************** begin Gil B. block ***************
 *******************************************************/
     virtual protected task monitor_logic_aritmetic();
@@ -434,6 +461,18 @@ class tb_monitor extends component_base;
       else 
          report_error("RESET_SAVE", $sformatf("#%p RESET INTERRUPTION FAILED  [0x%x] = 0x%x (expected: 0x%x 0x%x)", count , b_rst, vi.b_rst, 1,1));
    endtask 
+   
+   
+   
+   
+   /*Rst Interruption checkers*/
+   task verify_cpu_address_rst_int (longint inc);
+     if(vi.cpu_addr_out == 16'hfffc )
+       report_info("RST_INTERRUPTION", $sformatf("#%p  CPU address: 0x%x", inc, vi.cpu_addr_out));
+
+     else 
+       report_error("RST_INTERRUPTION", $sformatf("#%p RST INT FAILED address:0x%x (expected address: 0xfffc)", inc, vi.cpu_addr_out));
+   endtask
  
 
    task verify_wmem(longint count, int unsigned addr, int unsigned data);
