@@ -1,0 +1,1 @@
+Hardware verification code for a CPU6502 microprocessor wich was used in the first NES (Nintendo Entertainment System).
